@@ -2,7 +2,9 @@
 
 > **Rotas públicas:** `GET /cadastro`, `POST /cadastro`  
 > **Template:** `templates/auth/cadastro.html`  
-> **Pacote principal:** `com.planteumaflor.conciliador.identidade`
+> **Web:** `identidade.web`
+> **Caso de uso:** `identidade.application`
+> **Domínio/persistência:** `identidade.domain`, `identidade.persistence`
 
 ## 1. Função
 
@@ -24,6 +26,10 @@ Campos:
 A página explica que integrações bancárias serão configuradas na etapa seguinte.
 
 ## 3. Interface de aplicação
+
+A interface, command e implementação ficam em `identidade.application`.
+`CadastroController`, `CadastroForm` e feedbacks da tela ficam em
+`identidade.web`.
 
 ```java
 public interface CadastrarEmpresaEUsuario {
@@ -169,4 +175,3 @@ Não manter senha preenchida depois de erro.
 - Nenhuma integração externa é chamada dentro da transação de cadastro.
 - O usuário entra autenticado no onboarding.
 - Entidades não são expostas diretamente à camada web.
-

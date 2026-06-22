@@ -2,7 +2,11 @@
 
 > **Rota autenticada:** `GET /revisao`  
 > **Template:** `templates/revisao/index.html`  
-> **Pacotes:** `revisao`, `transacao`, `classificacao`, `match`, `outbox`, `ofx`
+> **Web:** `revisao.web`
+> **Comandos:** `revisao.application`
+> **Consultas:** `revisao.query`
+> **Domínios usados:** `transacao.domain`, `classificacao.domain`, `match.domain`,
+> `outbox.domain`, `ofx.domain`
 
 ## 1. Função
 
@@ -13,6 +17,10 @@ dia com uso prioritário em desktop.
 ## 2. Interfaces de aplicação
 
 Leitura:
+
+O contrato e a implementação de leitura ficam em `revisao.query`. Seus records
+de projeção não são entidades e podem ser adaptados para view models em
+`revisao.web`.
 
 ```java
 public interface ConsultarFilaRevisao {
@@ -28,6 +36,9 @@ public interface ConsultarFilaRevisao {
 ```
 
 Comandos:
+
+O contrato `RevisarTransacao`, commands e implementação orquestradora ficam em
+`revisao.application`.
 
 ```java
 public interface RevisarTransacao {
@@ -257,4 +268,3 @@ com recarregamento completo.
 - Transições e tenant são validados no backend.
 - Filtros permanecem após revisar um item.
 - Usuário consegue processar a fila no desktop e no celular.
-

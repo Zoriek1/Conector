@@ -2,7 +2,9 @@
 
 > **Rota autenticada:** `GET /integracoes`  
 > **Template:** `templates/integracoes/index.html`  
-> **Pacotes:** `pluggy`, `bling`, `ingest`
+> **Página agregadora:** `integracoes.web`, `integracoes.query`
+> **Operações:** `pluggy.application`, `bling.application`, `ingest.application`
+> **Bordas externas:** `pluggy.client`, `bling.client`
 
 ## 1. Função
 
@@ -14,6 +16,11 @@ Contas bancárias continuam sendo filtros globais nas telas operacionais; esta
 tela administra sua disponibilidade e saúde.
 
 ## 2. Interfaces de aplicação
+
+`ConsultarIntegracoes` e sua projeção agregada ficam em `integracoes.query`.
+Commands de cada fornecedor ficam em `pluggy.application` ou
+`bling.application`. A página agregadora fica em `integracoes.web`; callbacks e
+webhooks específicos permanecem no `web` da feature correspondente.
 
 ```java
 public interface ConsultarIntegracoes {
@@ -204,4 +211,3 @@ tenant. Operação pode ser recusada com 422 e orientação específica.
 - Contas podem ser filtradas e pausadas sem separar tabelas financeiras.
 - Nenhuma credencial é exposta ao frontend.
 - Ações respeitam tenant e são idempotentes.
-

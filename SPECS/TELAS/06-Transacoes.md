@@ -2,7 +2,9 @@
 
 > **Rota autenticada:** `GET /transacoes`  
 > **Template:** `templates/transacoes/index.html`  
-> **Pacote principal:** `com.planteumaflor.conciliador.transacao`
+> **Web:** `transacao.web`
+> **Consultas:** `transacao.query`
+> **Domínio/persistência:** `transacao.domain`, `transacao.persistence`
 
 ## 1. Função
 
@@ -14,6 +16,10 @@ Não existe uma tabela física ou uma página por conta bancária. O filtro de c
 recorta a mesma lista consolidada.
 
 ## 2. Interface de leitura
+
+Interface, filtros de consulta, projeções e implementação ficam em
+`transacao.query`. Controller e view models de apresentação ficam em
+`transacao.web`.
 
 ```java
 public interface ConsultarTransacoes {
@@ -189,4 +195,3 @@ Exportação não faz parte do v1 inicial. Quando adicionada:
 - Nenhuma consulta ou detalhe atravessa tenant.
 - A tela é somente leitura e não contorna a fila de revisão.
 - Desktop e mobile apresentam os mesmos dados essenciais.
-

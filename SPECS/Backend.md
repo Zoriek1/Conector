@@ -82,95 +82,165 @@ parte do pacote Java. Nos exemplos deste documento, `<base>` representa
 
 ## 4. Estrutura de pacotes
 
-O primeiro nível é organizado por feature. Tipos de infraestrutura ficam junto
-da feature que atendem.
+O primeiro nível é organizado por feature. Dentro de cada feature, subpacotes
+separam as responsabilidades que realmente existem. Não criar todas as
+subcamadas por obrigação: `inicio` precisa apenas de `web` e `query`, enquanto
+`transacao` possui domínio, aplicação, persistência, query e web.
 
 ```text
 <base>
 ├── ConciliadorApplication.java
 ├── identidade
-│   ├── Usuario.java
-│   ├── UsuarioRepository.java
-│   ├── CadastroController.java
-│   ├── CadastrarEmpresaEUsuario.java
-│   ├── UsuarioPrincipal.java
-│   └── UsuarioDetailsService.java
+│   ├── domain
+│   │   ├── Usuario.java
+│   │   ├── UsuarioId.java
+│   │   └── UsuarioRepository.java
+│   ├── application
+│   │   ├── CadastrarEmpresaEUsuario.java
+│   │   ├── CadastroService.java
+│   │   └── AlterarSenha.java
+│   ├── web
+│   │   ├── LoginController.java
+│   │   ├── CadastroController.java
+│   │   ├── PerfilController.java
+│   │   └── CadastroForm.java
+│   ├── persistence
+│   │   ├── UsuarioJpaRepository.java
+│   │   └── UsuarioRepositoryAdapter.java
+│   └── security
+│       ├── UsuarioPrincipal.java
+│       └── UsuarioDetailsService.java
 ├── empresa
-│   ├── Empresa.java
-│   ├── EmpresaId.java
-│   └── EmpresaRepository.java
+│   ├── domain
+│   │   ├── Empresa.java
+│   │   ├── EmpresaId.java
+│   │   └── EmpresaRepository.java
+│   └── persistence
+│       ├── EmpresaJpaRepository.java
+│       └── EmpresaRepositoryAdapter.java
 ├── pluggy
-│   ├── IntegracaoPluggy.java
-│   ├── ContaBancaria.java
-│   ├── IntegracaoPluggyRepository.java
-│   ├── PluggyConnectService.java
-│   ├── PluggyController.java
-│   └── PluggyWebhookController.java
+│   ├── domain
+│   │   ├── IntegracaoPluggy.java
+│   │   ├── ContaBancaria.java
+│   │   └── IntegracaoPluggyRepository.java
+│   ├── application
+│   │   ├── GerenciarPluggy.java
+│   │   └── PluggyConnectService.java
+│   ├── client
+│   │   ├── PluggyClient.java
+│   │   ├── PluggyClientConfig.java
+│   │   └── PluggyDtos.java
+│   ├── persistence
+│   │   └── IntegracaoPluggyRepositoryAdapter.java
+│   └── web
+│       ├── PluggyController.java
+│       └── PluggyWebhookController.java
 ├── onboarding
-│   ├── OnboardingController.java
-│   ├── ConsultarOnboarding.java
-│   └── IniciarPrimeiraSincronizacao.java
+│   ├── application
+│   │   ├── ConsultarOnboarding.java
+│   │   └── IniciarPrimeiraSincronizacao.java
+│   └── web
+│       └── OnboardingController.java
 ├── inicio
-│   ├── InicioController.java
-│   ├── ConsultarInicio.java
-│   └── InicioQueryService.java
+│   ├── query
+│   │   ├── ConsultarInicio.java
+│   │   └── InicioQueryService.java
+│   └── web
+│       └── InicioController.java
+├── integracoes
+│   ├── query
+│   │   ├── ConsultarIntegracoes.java
+│   │   └── IntegracoesQueryService.java
+│   └── web
+│       └── IntegracoesController.java
 ├── ingest
-│   ├── IngestScheduler.java
-│   ├── IngestirTransacoes.java
-│   ├── PluggyClient.java
-│   ├── PluggyClientConfig.java
-│   ├── PluggyNormalizer.java
-│   └── PluggyDtos.java
+│   ├── application
+│   │   ├── IngestirTransacoes.java
+│   │   └── PluggyNormalizer.java
+│   └── scheduling
+│       └── IngestScheduler.java
 ├── transacao
-│   ├── Transacao.java
-│   ├── TransacaoRepository.java
-│   ├── TransacaoJpaRepository.java
-│   ├── EstadoTransacao.java
-│   ├── ClasseTransacao.java
-│   ├── Direcao.java
-│   ├── Confianca.java
-│   ├── ConsultarTransacoes.java
-│   └── TransacaoQueryService.java
+│   ├── domain
+│   │   ├── Transacao.java
+│   │   ├── EstadoTransacao.java
+│   │   ├── ClasseTransacao.java
+│   │   ├── Direcao.java
+│   │   ├── Confianca.java
+│   │   └── TransacaoRepository.java
+│   ├── query
+│   │   ├── ConsultarTransacoes.java
+│   │   └── TransacaoQueryService.java
+│   ├── persistence
+│   │   ├── TransacaoJpaRepository.java
+│   │   └── TransacaoRepositoryAdapter.java
+│   └── web
+│       └── TransacaoController.java
 ├── classificacao
-│   ├── ClassificarTransacoes.java
-│   ├── Classificador.java
-│   ├── RegraClassificacao.java
-│   ├── ResultadoClassificacao.java
-│   └── regras
+│   ├── domain
+│   │   ├── RegraClassificacao.java
+│   │   └── ResultadoClassificacao.java
+│   └── application
+│       ├── ClassificarTransacoes.java
+│       ├── Classificador.java
+│       └── regras
 ├── match
-│   ├── EncontrarMatches.java
-│   ├── Matcher.java
-│   ├── EstrategiaMatch.java
-│   ├── MatchCandidato.java
-│   └── estrategias
+│   ├── domain
+│   │   ├── EstrategiaMatch.java
+│   │   └── MatchCandidato.java
+│   └── application
+│       ├── EncontrarMatches.java
+│       ├── Matcher.java
+│       └── estrategias
 ├── bling
-│   ├── BlingClient.java
-│   ├── BlingClientConfig.java
-│   ├── BlingGateway.java
-│   ├── BlingToken.java
-│   ├── BlingTokenRepository.java
-│   ├── BlingTokenService.java
-│   └── BlingDtos.java
+│   ├── domain
+│   │   ├── BlingToken.java
+│   │   └── BlingTokenRepository.java
+│   ├── application
+│   │   ├── BlingGateway.java
+│   │   └── BlingTokenService.java
+│   ├── client
+│   │   ├── BlingClient.java
+│   │   ├── BlingClientConfig.java
+│   │   └── BlingDtos.java
+│   ├── persistence
+│   │   └── BlingTokenRepositoryAdapter.java
+│   └── web
+│       └── BlingOAuthController.java
 ├── outbox
-│   ├── EventoOutbox.java
-│   ├── EventoOutboxRepository.java
-│   ├── EnfileirarEscritaBling.java
-│   ├── ProcessarOutboxBling.java
-│   └── OutboxScheduler.java
+│   ├── domain
+│   │   ├── EventoOutbox.java
+│   │   └── EventoOutboxRepository.java
+│   ├── application
+│   │   ├── EnfileirarEscritaBling.java
+│   │   └── ProcessarOutboxBling.java
+│   ├── persistence
+│   │   └── EventoOutboxRepositoryAdapter.java
+│   └── scheduling
+│       └── OutboxScheduler.java
 ├── ofx
-│   ├── LoteOfx.java
-│   ├── LoteOfxRepository.java
-│   ├── GerarLoteOfx.java
-│   ├── GeradorOfx.java
-│   ├── ConsultarLotesOfx.java
-│   ├── GerenciarLotesOfx.java
-│   ├── ObterArquivoOfx.java
-│   └── LoteOfxController.java
+│   ├── domain
+│   │   ├── LoteOfx.java
+│   │   ├── LoteOfxRepository.java
+│   │   └── GeradorOfx.java
+│   ├── application
+│   │   ├── GerarLoteOfx.java
+│   │   ├── GerenciarLotesOfx.java
+│   │   └── ObterArquivoOfx.java
+│   ├── query
+│   │   └── ConsultarLotesOfx.java
+│   ├── persistence
+│   │   └── LoteOfxRepositoryAdapter.java
+│   └── web
+│       └── LoteOfxController.java
 ├── revisao
-│   ├── RevisaoController.java
-│   ├── RevisarTransacao.java
-│   ├── FilaRevisaoQuery.java
-│   └── RevisaoDtos.java
+│   ├── application
+│   │   └── RevisarTransacao.java
+│   ├── query
+│   │   ├── ConsultarFilaRevisao.java
+│   │   └── RevisaoQueryService.java
+│   └── web
+│       ├── RevisaoController.java
+│       └── RevisaoViewModels.java
 └── config
     ├── SecurityConfig.java
     ├── SchedulingConfig.java
@@ -178,11 +248,42 @@ da feature que atendem.
     └── ConciliadorProperties.java
 ```
 
-Subpacotes são aceitáveis quando uma feature crescer. Não criar pacotes globais
-`controller`, `service`, `repository`, `entity` ou `dto`.
+Responsabilidades dos subpacotes:
 
-Visibilidade de pacote deve ser usada para esconder detalhes internos sempre que
-o Spring/JPA não exigir visibilidade maior.
+| Subpacote | Conteúdo permitido |
+|---|---|
+| `domain` | entidades, value objects, regras e portas de repositório |
+| `application` | casos de uso, commands e implementações orquestradoras |
+| `web` | controllers, forms e view models Thymeleaf/HTMX |
+| `persistence` | Spring Data, adapters de repositório e mapeamento persistente |
+| `client` | clients HTTP, configuração e DTOs externos |
+| `query` | consultas otimizadas e projeções imutáveis de leitura |
+| `scheduling` | gatilhos agendados; nenhuma regra de negócio |
+| `security` | integração da identidade com Spring Security |
+
+Não criar pacotes globais `controller`, `service`, `repository`, `entity` ou
+`dto`. Também não criar `BaseController`, `BaseService` ou `BaseRepository`.
+
+Somente contratos usados entre subpacotes devem ser públicos. Implementações
+permanecem com a menor visibilidade aceita pelo Spring/JPA. A camada `web` depende
+de `application`/`query`; estas não dependem de `web`.
+
+Direção de dependências:
+
+```text
+web ─────────► application ─────────► domain
+ │                    ▲                  ▲
+ └──────────► query   │                  │
+                      │                  │
+client ── implementa porta     persistence ── implementa repository
+scheduling ─────────► application
+```
+
+`application` conhece interfaces de gateway, não implementações em `client`.
+`domain` não conhece controller, form, view model, `RestClient`, Spring Data ou
+template. No v1, entidades de domínio podem carregar apenas anotações JPA de
+mapeamento para evitar duplicação de modelos; acesso ao banco continua
+encapsulado em `persistence`.
 
 ---
 

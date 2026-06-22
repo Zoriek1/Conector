@@ -530,7 +530,35 @@ Até lá, o tema deve ser implementado por CSS custom properties substituíveis.
 
 ---
 
-## 20. Estrutura de templates e assets
+## 20. Estrutura Java, templates e assets
+
+### 20.1 Java por feature
+
+O frontend server-side não forma um pacote global `controller`. Cada tela fica no
+subpacote `web` da feature correspondente e depende de contratos em `application`
+ou `query`.
+
+```text
+revisao
+├── application
+│   └── RevisarTransacao.java
+├── query
+│   ├── ConsultarFilaRevisao.java
+│   └── RevisaoQueryService.java
+└── web
+    ├── RevisaoController.java
+    ├── RevisaoForms.java
+    └── RevisaoViewModels.java
+```
+
+- Controllers são classes concretas e não estendem uma classe base.
+- Forms e view models pertencem a `web` e usam `record` quando imutáveis.
+- Controllers não recebem entidades JPA nem acessam Spring Data.
+- Interfaces de caso de uso ficam em `application`; consultas de tela ficam em
+  `query`.
+- Templates são as Views do MVC e permanecem em `resources/templates`.
+
+### 20.2 Templates e assets
 
 ```text
 src/main/resources

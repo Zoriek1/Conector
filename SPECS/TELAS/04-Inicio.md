@@ -2,7 +2,8 @@
 
 > **Rota autenticada:** `GET /inicio`  
 > **Template:** `templates/inicio/index.html`  
-> **Pacote principal:** `com.planteumaflor.conciliador.inicio`
+> **Controller/view models:** `inicio.web`
+> **Consultas:** `inicio.query`
 
 ## 1. Função
 
@@ -18,6 +19,9 @@ trabalho. A tela responde:
 Não é uma ferramenta de BI nem substitui a fila de revisão.
 
 ## 2. Interface de leitura
+
+Interface, projeções e implementação ficam em `inicio.query`. O controller e os
+view models estritamente visuais ficam em `inicio.web`.
 
 ```java
 public interface ConsultarInicio {
@@ -166,4 +170,3 @@ Ações adicionais:
 - Nenhuma métrica mistura empresas.
 - Todo card acionável leva à lista já filtrada.
 - A página permanece útil no celular sem gráficos ou tabelas largas.
-

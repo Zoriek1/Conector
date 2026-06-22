@@ -2,7 +2,10 @@
 
 > **Rota autenticada:** `GET /ofx/lotes`  
 > **Template:** `templates/ofx/index.html`  
-> **Pacote principal:** `com.planteumaflor.conciliador.ofx`
+> **Web:** `ofx.web`
+> **Casos de uso:** `ofx.application`
+> **Consultas:** `ofx.query`
+> **Domínio/persistência:** `ofx.domain`, `ofx.persistence`
 
 ## 1. Função
 
@@ -13,6 +16,9 @@ Download e conciliação são estados diferentes. Baixar um arquivo nunca marca 
 lote como conciliado.
 
 ## 2. Interfaces de aplicação
+
+`ConsultarLotesOfx` fica em `ofx.query`. Comandos e acesso ao arquivo ficam em
+`ofx.application`; `GeradorOfx` e invariantes do lote ficam em `ofx.domain`.
 
 ```java
 public interface ConsultarLotesOfx {
@@ -199,4 +205,3 @@ das transações. Se não for necessário no v1, não apresentar a ação.
 - Download nunca equivale a conciliação.
 - Arquivo e confirmação são isolados por empresa e auditáveis.
 - Controller não conhece a implementação do formato OFX.
-

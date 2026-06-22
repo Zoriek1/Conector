@@ -3,7 +3,9 @@
 > **Rota pública:** `GET /entrar`  
 > **Processamento:** `POST /entrar` pelo Spring Security  
 > **Template:** `templates/auth/login.html`  
-> **Pacote principal:** `com.planteumaflor.conciliador.identidade`
+> **Controller:** `identidade.web.LoginController`
+> **Segurança:** `identidade.security`
+> **Domínio:** `identidade.domain`
 
 ## 1. Função
 
@@ -34,6 +36,10 @@ Desktop usa card central com largura limitada. Mobile ocupa a largura disponíve
 sem reduzir os alvos de toque.
 
 ## 3. Classes e interfaces
+
+O controller fica em `identidade.web`. `UsuarioPrincipal`, handlers e a
+implementação de `UserDetailsService` ficam em `identidade.security`; `Usuario` e
+seu repositório-porta ficam em `identidade.domain`.
 
 ```java
 @Controller
@@ -140,4 +146,3 @@ cookies e redirecionamentos de segurança.
 - Credenciais inválidas não revelam existência do usuário.
 - Sessão autenticada contém identidade e tenant imutáveis.
 - Usuário configurado chega ao início; usuário novo chega ao onboarding.
-

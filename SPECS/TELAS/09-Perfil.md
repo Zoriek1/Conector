@@ -2,7 +2,10 @@
 
 > **Rota autenticada:** `GET /perfil`  
 > **Template:** `templates/perfil/index.html`  
-> **Pacotes:** `identidade`, `empresa`
+> **Web:** `identidade.web`
+> **Casos de uso:** `identidade.application`
+> **Domínio/persistência:** `identidade.domain`, `empresa.domain` e respectivos
+> subpacotes `persistence`
 
 ## 1. Função
 
@@ -11,6 +14,10 @@ encerrar a sessão. Não existe troca de empresa ou administração de múltiplo
 usuários no v1.
 
 ## 2. Interfaces de aplicação
+
+Interfaces, commands e implementações ficam em `identidade.application`.
+Controller, forms e `PerfilView` ficam em `identidade.web`. Os dados empresariais
+são obtidos por porta da feature `empresa`, sem acesso JPA pelo controller.
 
 ```java
 public interface ConsultarPerfil {
@@ -185,4 +192,3 @@ navegação completa.
 - Não existe seletor de empresa no v1.
 - Cada ação chama interface específica e mantém entidades encapsuladas.
 - Logout e encerramento de sessões funcionam no desktop e mobile.
-
