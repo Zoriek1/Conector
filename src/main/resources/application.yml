@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: conciliador
+  datasource:
+    # Defaults batem com o compose.yaml para rodar local sem .env.
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/conciliador}
+    username: ${DATABASE_USER:conciliador}
+    password: ${DATABASE_PASSWORD:conciliador}
+  jpa:
+    hibernate:
+      ddl-auto: validate      # Hibernate só valida; Flyway é dono do schema
+    open-in-view: false       # nada de lazy loading na camada de view
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  threads:
+    virtual:
+      enabled: true           # workers I/O-bound (Pluggy/Bling) em virtual threads
+
+server:
+  servlet:
+    context-path: /page       # rota interna /revisao publica em .../page/revisao
+  forward-headers-strategy: framework   # atrás de proxy (HTTPS, host real)
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info  # só health e info via HTTP (Backend §11)
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+conciliador:
+  timezone: ${CONCILIADOR_TZ:America/Sao_Paulo}
+  ingest:
+    cron: ${INGEST_CRON:0 0 4 * * *}
+    dias-retroativos: ${INGEST_LOOKBACK_DAYS:7}
+  classificacao:
+    confianca-automatica: ${AUTO_CONFIDENCE:0.900}
+    tolerancia-taxa: ${FEE_TOLERANCE:0.100}
+  bling:
+    # Credenciais do APP Bling (OAuth) são globais; default vazio no esqueleto.
+    base-url: ${BLING_BASE_URL:https://api.bling.com.br/Api/v3}
+    client-id: ${BLING_CLIENT_ID:}
+    client-secret: ${BLING_CLIENT_SECRET:}
+    margem-expiracao: ${BLING_TOKEN_SKEW:PT2M}
+  pluggy:
+    # Sem api-key global: credenciais do Meu Pluggy são por empresa, no banco.
+    base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
+  cripto:
+    chave: ${CRIPTO_KEY:}     # cifra credenciais Pluggy e refresh token Bling
