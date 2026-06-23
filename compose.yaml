@@ -1,0 +1,42 @@
+# Sobe a aplicação + PostgreSQL 16 (ARQUITETURA §11.8).
+# A imagem da app é gerada por Cloud Native Buildpacks:
+#   ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=conciliador:latest
+# Para subir só o banco em desenvolvimento:  docker compose up db
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: conciliador
+      POSTGRES_USER: ${DATABASE_USER:-conciliador}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-conciliador}
+    ports:
+      - "5432:5432"
+    volumes:
+      - conciliador-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-conciliador} -d conciliador"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    image: conciliador:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/conciliador
+      DATABASE_USER: ${DATABASE_USER:-conciliador}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-conciliador}
+      # Segredos reais (Bling, CRIPTO_KEY) vêm do ambiente / .env — nunca versionados.
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/page/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  conciliador-db:
