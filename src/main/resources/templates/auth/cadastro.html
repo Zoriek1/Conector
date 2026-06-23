@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Criar conta')}"></head>
+<body class="bg-light">
+<main class="container" style="max-width: 480px; margin-top: 6vh;">
+    <h1 class="h3 mb-1 text-center">Criar conta</h1>
+    <p class="text-muted text-center small mb-4">
+        As integrações bancárias (Pluggy e Bling) são configuradas na etapa seguinte.
+    </p>
+
+    <form th:action="@{/cadastro}" th:object="${form}" method="post"
+          class="card card-body shadow-sm">
+
+        <div class="mb-3">
+            <label for="nomeEmpresa" class="form-label">Nome da empresa</label>
+            <input type="text" id="nomeEmpresa" th:field="*{nomeEmpresa}" class="form-control">
+            <div class="text-danger small" th:if="${#fields.hasErrors('nomeEmpresa')}"
+                 th:errors="*{nomeEmpresa}">erro</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="cnpj" class="form-label">CNPJ <span class="text-muted">(opcional)</span></label>
+            <input type="text" id="cnpj" th:field="*{cnpj}" class="form-control" inputmode="numeric">
+        </div>
+
+        <div class="mb-3">
+            <label for="nomeResponsavel" class="form-label">Nome do responsável</label>
+            <input type="text" id="nomeResponsavel" th:field="*{nomeResponsavel}" class="form-control">
+            <div class="text-danger small" th:if="${#fields.hasErrors('nomeResponsavel')}"
+                 th:errors="*{nomeResponsavel}">erro</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">E-mail</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control" autocomplete="username">
+            <div class="text-danger small" th:if="${#fields.hasErrors('email')}"
+                 th:errors="*{email}">erro</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="senha" class="form-label">Senha</label>
+            <input type="password" id="senha" th:field="*{senha}" class="form-control"
+                   autocomplete="new-password">
+            <div class="form-text">Ao menos 8 caracteres.</div>
+            <div class="text-danger small" th:if="${#fields.hasErrors('senha')}"
+                 th:errors="*{senha}">erro</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="confirmarSenha" class="form-label">Confirmar senha</label>
+            <input type="password" id="confirmarSenha" th:field="*{confirmarSenha}" class="form-control"
+                   autocomplete="new-password">
+            <div class="text-danger small" th:if="${#fields.hasErrors('confirmarSenha')}"
+                 th:errors="*{confirmarSenha}">erro</div>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Criar conta</button>
+    </form>
+
+    <p class="text-center mt-3">
+        <a th:href="@{/entrar}">Já tenho conta</a>
+    </p>
+</main>
+</body>
+</html>
