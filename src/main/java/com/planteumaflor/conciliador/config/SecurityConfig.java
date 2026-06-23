@@ -2,11 +2,18 @@ package com.planteumaflor.conciliador.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 
 /**
  * Segurança base (Backend §11).
@@ -22,8 +29,12 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http,
+                                    AuthenticationSuccessHandler successHandler,
+                                    RequestCache requestCache,
+                                    SecurityContextRepository securityContextRepository) throws Exception {
         http
+                .addFilterBefore(new InvalidSessionRedirectFilter(), SecurityContextHolderFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/entrar", "/cadastro").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
@@ -37,12 +48,33 @@ class SecurityConfig {
                         .failureUrl("/entrar?erro")
                         .permitAll()
                 )
+                .requestCache(cache -> cache.requestCache(requestCache))
+                .securityContext(context -> context
+                        .securityContextRepository(securityContextRepository))
                 .logout(logout -> logout
                         .logoutUrl("/sair")
                         .logoutSuccessUrl("/entrar?saiu")
                         .permitAll()
                 );
         return http.build();
+    }
+
+    @Bean
+    RequestCache requestCache() {
+        HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+        // O login deve voltar exatamente à URL original, sem adicionar ?continue.
+        requestCache.setMatchingRequestParameterName(null);
+        return requestCache;
+    }
+
+    @Bean
+    SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     /**

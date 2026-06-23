@@ -13,8 +13,8 @@
     <div th:if="${param.saiu}" class="alert alert-success" role="alert">
         Você saiu da sua conta.
     </div>
-    <div th:if="${param.cadastro}" class="alert alert-success" role="alert">
-        Conta criada! Entre com suas credenciais.
+    <div th:if="${param.expirada}" class="alert alert-warning" role="alert">
+        Sua sessão expirou. Entre novamente.
     </div>
 
     <!-- th:action faz o Thymeleaf incluir o token CSRF automaticamente.
