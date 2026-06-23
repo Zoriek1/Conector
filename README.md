@@ -79,7 +79,7 @@ O primeiro lançamento será uma aplicação Spring Boot executada em uma única
 instância, com:
 
 - Java 21, Maven e PostgreSQL 16;
-- Spring MVC, Thymeleaf e HTMX;
+- Spring MVC, Thymeleaf, HTMX e Bootstrap (via WebJar);
 - Spring Data JPA e Flyway;
 - autenticação por formulário e sessão;
 - Pluggy para agregação bancária;
@@ -93,13 +93,26 @@ conciliação completamente automática de casos ambíguos.
 ## Status
 
 O projeto está em fase de especificação. A arquitetura, o backend, o frontend e
-os contratos das telas estão documentados antes do início da implementação.
+os contratos das telas estão documentados antes do início da implementação. As
+specs foram auditadas para consistência e a API do Bling foi levantada para
+fechar as decisões em aberto; os guias de setup do Spring Boot e de implementação
+do frontend já estão prontos para o passo 1.
 
 ## Documentação
 
 - [Arquitetura geral](./SPECS/ARQUITETURA-conciliador.md)
 - [Especificação do backend](./SPECS/Backend.md)
 - [Especificação do frontend](./SPECS/Frontend.md)
+
+Guias complementares:
+
+- [Auditoria de consistência das specs](./SPECS/AUDITORIA-consistencia.md)
+- [API v3 do Bling — decisões](./SPECS/Bling-API-v3.md)
+- [Setup Spring Boot](./SPECS/Setup-SpringBoot.md)
+- [Frontend — implementação](./SPECS/Frontend-Implementacao.md)
+
+Telas:
+
 - [Login](./SPECS/TELAS/01-Login.md)
 - [Cadastro](./SPECS/TELAS/02-Cadastro.md)
 - [Onboarding](./SPECS/TELAS/03-Onboarding.md)

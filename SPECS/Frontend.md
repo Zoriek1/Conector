@@ -187,14 +187,19 @@ O onboarding é apresentado após o cadastro e pode ser retomado.
 ### 7.1 Etapas
 
 1. **Conta criada:** exibir empresa e responsável.
-2. **Conectar bancos:** iniciar o fluxo Pluggy.
-3. **Confirmar contas:** listar contas descobertas e habilitá-las para ingestão.
-4. **Conectar Bling:** concluir OAuth para permitir match e escrita.
-5. **Primeira sincronização:** exibir progresso e resultado.
+2. **Configurar Meu Pluggy:** a empresa informa as credenciais do seu próprio Meu
+   Pluggy (clientId/clientSecret); o backend valida e guarda por empresa,
+   criptografadas.
+3. **Conectar bancos:** iniciar o fluxo do widget Pluggy com as credenciais da
+   empresa.
+4. **Confirmar contas:** listar contas descobertas e habilitá-las para ingestão.
+5. **Conectar Bling:** concluir OAuth para permitir match e escrita.
+6. **Primeira sincronização:** exibir progresso e resultado.
 
-A conexão Pluggy não usa dados de integração fornecidos manualmente em `.env` por
-empresa. O frontend inicia o fluxo no backend; o backend vincula o resultado à
-empresa autenticada.
+Cada empresa usa o seu próprio Meu Pluggy: as credenciais ficam no banco (por
+empresa, criptografadas), nunca em `.env`. O frontend inicia o fluxo no backend; o
+backend vincula o resultado à empresa autenticada e nunca expõe as credenciais ao
+navegador.
 
 ### 7.2 Estados de uma integração
 

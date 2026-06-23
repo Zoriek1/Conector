@@ -314,6 +314,8 @@ Invariantes de identidade e tenancy:
 - e-mail é normalizado e único entre usuários;
 - senha é persistida somente como hash;
 - `usuario.empresa_id` é obrigatório e único no v1;
+- credenciais do Meu Pluggy (clientId/clientSecret) são por empresa, únicas por
+  empresa e persistidas **criptografadas em repouso**; nunca globais no ambiente;
 - `integracao_pluggy` é única por `(empresa_id, pluggy_item_id)`;
 - `conta_bancaria` é única por `(empresa_id, pluggy_account_id)`;
 - `transacao` é única por `(empresa_id, pluggy_transaction_id)`;
@@ -629,11 +631,15 @@ edição posterior da transação altere silenciosamente um evento já criado.
 `PluggyClient` é uma interface `@HttpExchange`. DTOs refletem o contrato externo
 e não escapam dos pacotes `pluggy` e `ingest`.
 
-As credenciais técnicas da aplicação Pluggy são globais e vêm do ambiente. A
-conexão é iniciada depois do cadastro: a aplicação cria uma sessão/token de
-conexão, o usuário conclui o fluxo do Pluggy e o backend persiste os
-identificadores da integração e das contas com `empresa_id`. Nenhum identificador
-de conexão de cliente fica no `.env`.
+**Cada empresa usa o seu próprio Meu Pluggy** (tier free, credenciais próprias).
+As credenciais do Meu Pluggy (clientId/clientSecret) são **por empresa**,
+informadas no onboarding e **persistidas no banco, criptografadas em repouso** —
+não há credencial Pluggy global no `.env` (apenas a `base-url` é configuração de
+ambiente). A conexão é iniciada depois do cadastro: usando as credenciais da
+própria empresa, a aplicação cria uma sessão/token de conexão, o usuário conclui
+o fluxo do widget Pluggy e o backend persiste os identificadores da integração e
+das contas com `empresa_id`. Nenhuma credencial de cliente é compartilhada entre
+empresas.
 
 O frontend pode apresentar todas as contas em uma visão consolidada. O filtro de
 conta bancária não altera o isolamento por empresa.
@@ -791,12 +797,13 @@ conciliador:
     client-secret: ${BLING_CLIENT_SECRET}
   pluggy:
     base-url: ${PLUGGY_BASE_URL}
-    api-key: ${PLUGGY_API_KEY}
+    # Sem api-key global: as credenciais do Meu Pluggy são POR EMPRESA, no banco.
 ```
 
-As credenciais técnicas Pluggy/Bling são globais e ficam no ambiente. Conexões,
-tokens OAuth, contas próprias, documentos e cursores de sincronização pertencem
-à empresa e ficam no banco.
+Apenas as credenciais da aplicação **Bling** (client-id/secret do app OAuth) são
+globais e ficam no ambiente. As credenciais do **Meu Pluggy são por empresa**
+(criptografadas no banco). Conexões, tokens OAuth, contas próprias, documentos e
+cursores de sincronização também pertencem à empresa e ficam no banco.
 
 ---
 
@@ -955,4 +962,6 @@ idempotência ou segurança para uma etapa final.
 6. Endpoint/estratégia final para transferência interna.
 7. Formato de armazenamento da auditoria de negócio.
 8. Política de retenção de transações, outbox, auditoria e arquivos OFX.
-9. Se tokens Pluggy/Bling exigem criptografia em repouso no banco.
+9. Criptografia em repouso: **requisito firme** para as credenciais do Meu Pluggy
+   por empresa (clientId/clientSecret) e para o refresh token do Bling. Definir o
+   mecanismo (ex.: coluna cifrada via chave em KMS/variável de ambiente).

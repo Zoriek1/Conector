@@ -28,7 +28,9 @@ REQUER_ATENCAO
 ```
 
 O estado é derivado das integrações persistidas; não é controlado por um número
-de etapa enviado pelo navegador.
+de etapa enviado pelo navegador. `PLUGGY_PENDENTE` cobre tanto informar as
+credenciais do Meu Pluggy da empresa quanto concluir a conexão dos bancos pelo
+widget.
 
 ## 3. Interfaces de aplicação
 
@@ -110,10 +112,12 @@ Fragments são substituídos por HTMX. Não existe herança de telas.
 
 ## 7. Encapsulamento
 
-- Credenciais técnicas Pluggy/Bling vêm da configuração do servidor.
+- As credenciais do **Meu Pluggy são por empresa**: informadas no onboarding e
+  guardadas no banco, criptografadas. Só as credenciais do app **Bling** (OAuth)
+  vêm da configuração do servidor.
 - Identificadores e tokens da empresa ficam no banco.
 - O navegador recebe apenas token efêmero estritamente necessário ao componente
-  de conexão Pluggy.
+  de conexão Pluggy; as credenciais do Meu Pluggy nunca chegam ao navegador.
 - `empresaId` nunca aparece como campo editável.
 - Callback externo é correlacionado com estado assinado e de uso único.
 - O estado apresentado é recalculado no servidor após cada ação.
@@ -121,14 +125,17 @@ Fragments são substituídos por HTMX. Não existe herança de telas.
 
 ## 8. Fluxo Pluggy
 
-1. Usuário escolhe `Conectar bancos`.
-2. POST autenticado inicia conexão para a empresa da sessão.
-3. Backend devolve fragmento com dados efêmeros necessários ao widget.
-4. JavaScript local abre o componente Pluggy.
-5. Conclusão é validada pelo backend.
-6. IDs da integração e contas são persistidos com `empresa_id`.
-7. Tela mostra contas descobertas.
-8. Usuário confirma quais contas participarão do ingest.
+1. Usuário informa as credenciais do seu **Meu Pluggy** (clientId/clientSecret);
+   o backend valida e persiste por empresa, criptografadas.
+2. Usuário escolhe `Conectar bancos`.
+3. POST autenticado inicia conexão para a empresa da sessão **usando as
+   credenciais do Meu Pluggy daquela empresa**.
+4. Backend devolve fragmento com dados efêmeros necessários ao widget.
+5. JavaScript local abre o componente Pluggy.
+6. Conclusão é validada pelo backend.
+7. IDs da integração e contas são persistidos com `empresa_id`.
+8. Tela mostra contas descobertas.
+9. Usuário confirma quais contas participarão do ingest.
 
 O contrato exato do widget deve ser isolado em `PluggyConnectAdapter`; mudanças do
 fornecedor não alteram o controller ou o modelo de onboarding.

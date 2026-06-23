@@ -4,8 +4,15 @@ Serviço que coleta as movimentações financeiras das contas da empresa via Plu
 (Open Finance), classifica cada transação e a concilia no Bling de forma híbrida
 (API v3 no que é seguro, OFX para o restante).
 
-> **Status:** rascunho de arquitetura (v0). Itens marcados com ⚠️ precisam ser
+> **Status:** arquitetura v1 (sincronizada). Itens marcados com ⚠️ precisam ser
 > confirmados na referência da API antes da implementação.
+>
+> **Precedência:** o v1 é **multiempresa com form login e isolamento por tenant**
+> (ver [Backend](./Backend.md) §1 e [Frontend](./Frontend.md)). As menções
+> originais a empresa única e HTTP Basic foram substituídas. Divergências e
+> correções aplicadas estão registradas em
+> [AUDITORIA-consistencia.md](./AUDITORIA-consistencia.md). As incógnitas da API
+> do Bling (§7) foram levantadas em [Bling-API-v3.md](./Bling-API-v3.md).
 
 ---
 
@@ -26,7 +33,7 @@ genuinamente ambíguo.
 
 | # | Decisão | Motivo |
 |---|---------|--------|
-| 1 | Fonte única: **Pluggy (Meu Pluggy, tier free)** via Open Finance | Cobre todas as contas com uma integração; custo R$0 para contas próprias; infra regulada pelo BC. |
+| 1 | Fonte única: **Pluggy via Open Finance** — **cada empresa usa o seu próprio Meu Pluggy** (tier free, credenciais próprias) | Uma integração cobre todas as contas da empresa; **custo R$0 por empresa** (free tier de cada uma); infra regulada pelo BC. As credenciais do Meu Pluggy são **por empresa, persistidas no banco e criptografadas em repouso** — nunca globais no `.env`. O widget Pluggy Connect é aberto com as credenciais da própria empresa. |
 | 2 | **Serviço novo separado, com UI própria** | Isola do Gestor de Pedidos; a fila de revisão precisa de tela. |
 | 3 | Escrita no Bling **híbrida**: API v3 no que tem certeza, OFX no resto | O Bling **não tem API de conciliação/import de OFX** — só tela. O que dá pra escrever com segurança vai por API; o resto cai no upload manual de OFX. |
 | 4 | Classificação **automática + fila de revisão** para ambíguos | Regras resolvem o trivial; humano decide o duvidoso. |
@@ -56,7 +63,10 @@ genuinamente ambíguo.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-- **Scheduler** — cron diário (~6 req/dia, 1/conta). Dispara o ingest.
+- **Scheduler** — cron diário, percorrendo as integrações ativas **por empresa**
+  (~6 req/dia por empresa, 1/conta). O volume total escala com `nº empresas ×
+  contas`; ainda assim cabe em uma única instância sem Quartz (§11.6). Dispara o
+  ingest.
 - **Ingest Worker** — chama a API do Pluggy (contas, saldos, transações),
   paginando por janela de data. Idempotente pelo `pluggy_transaction_id`.
 - **Normalizer** — converte cada transação no formato canônico (tabela §4).
@@ -81,8 +91,11 @@ Tabela central do pipeline e fonte de verdade do estado de cada movimento.
 CREATE TABLE transacao (
   id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
+  -- Tenant (raiz de isolamento — obrigatório em toda tabela compartilhada)
+  empresa_id              UUID NOT NULL REFERENCES empresa(id),
+
   -- Origem (idempotência de ingestão)
-  pluggy_transaction_id   TEXT NOT NULL UNIQUE,   -- impede reprocessar o mesmo movimento
+  pluggy_transaction_id   TEXT NOT NULL,          -- único por empresa (ver constraint abaixo)
   pluggy_account_id       TEXT NOT NULL,
   conta_local             TEXT NOT NULL,          -- 'mp' | 'stone' | 'cora' ...
 
@@ -97,7 +110,7 @@ CREATE TABLE transacao (
   -- Classificação
   classe                  TEXT NOT NULL DEFAULT 'indefinido',
                           -- 'credito_venda' | 'transferencia_interna'
-                          -- | 'debito_despesa' | 'indefinido'
+                          -- | 'debito_despesa' | 'pro_labore' | 'indefinido'
   confianca               NUMERIC(4,3) NOT NULL DEFAULT 0,  -- 0.000 .. 1.000
 
   -- Match contra o Bling
@@ -114,16 +127,19 @@ CREATE TABLE transacao (
   bling_bordero_id        TEXT,                   -- id da baixa, quando escrita por API
   ofx_lote_id             TEXT,                   -- id do lote OFX, quando vai por OFX
 
-  -- Outbox / resiliência
-  tentativas              INT NOT NULL DEFAULT 0,
-  erro_ultimo             TEXT,
+  -- Resiliência: detalhes técnicos de entrega (tentativas, erro_ultimo) vivem em
+  -- outbox_bling, não aqui. estado = FALHA indica falha terminal de negócio.
+  -- Ver Backend §7.2.
 
+  version                 BIGINT NOT NULL DEFAULT 0,  -- optimistic locking (@Version)
   created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  CONSTRAINT uq_transacao_pluggy UNIQUE (empresa_id, pluggy_transaction_id)
 );
 
-CREATE INDEX idx_transacao_estado ON transacao(estado);
-CREATE INDEX idx_transacao_match  ON transacao(data, valor_liquido, direcao);
+CREATE INDEX idx_transacao_estado ON transacao(empresa_id, estado);
+CREATE INDEX idx_transacao_match  ON transacao(empresa_id, data, valor_liquido, direcao);
 ```
 
 ### Invariante crítica
@@ -186,17 +202,21 @@ operacional, tarifa: nada está no Bling ainda.
 ## 6. Máquina de estados (`estado`)
 
 ```
-ingerido ──► classificado ──┬──► escrito_api ──► conciliado
+ingerido ──► classificado ──┬──► aguardando_escrita_api ──► escrito_api ──► conciliado
                             │
-                            ├──► em_revisao ──┬──► escrito_api ──► conciliado
+                            ├──► em_revisao ──┬──► aguardando_escrita_api ──► escrito_api ──► conciliado
                             │                 └──► em_lote_ofx ──► conciliado
                             │
                             └──► em_lote_ofx ──► conciliado
 
-(qualquer escrita API) ──(falha)──► falha ──(retry/outbox)──► escrito_api
+(escrita API) ──(tentativas esgotadas)──► falha ──(retry)──► aguardando_escrita_api
 ```
 
-`conciliado` é terminal, não importa por qual caminho chegou.
+`aguardando_escrita_api` é o item já enfileirado no outbox, ainda não confirmado
+pelo Bling — distinguir "enfileirado" de "confirmado" é exigência do padrão
+outbox. O conjunto canônico de 8 estados e a tabela completa de transições estão
+em [Backend](./Backend.md) §5.3. `conciliado` é terminal, não importa por qual
+caminho chegou.
 
 ---
 
@@ -213,14 +233,15 @@ Base: `https://api.bling.com.br/Api/v3` · Auth: OAuth 2.0 Bearer.
 | Baixar a despesa criada | POST | `/borderos` | ✅ recurso existe |
 | Categorias (balde de taxa, despesas) | GET | `/categorias/receitas-despesas` | ✅ confirmado |
 | Contas/portadores bancários | GET | `/contas-contabeis` | ⚠️ confirmar se é aqui que vivem as contas bancárias |
-| **Transferência interna entre contas** | — | **sem endpoint dedicado conhecido na v3** | ⚠️ **confirmar**; provável fallback p/ OFX |
+| **Transferência interna entre contas** | — | **sem endpoint na v3 (só UI)** | ✅ **decisão fechada: sai por OFX** (ver [Bling-API-v3.md](./Bling-API-v3.md) §4) |
 
 > **Observação importante (honesta):** a API v3 movimenta dinheiro principalmente
-> via **borderô (baixa)** de contas a pagar/receber. Não há endpoint claro de
-> "lançamento de caixa avulso" nem de "transferência entre contas". Logo:
-> crédito-de-venda e despesa-nova são bem expressáveis por API; **transferência
-> interna é a forte candidata a sair pelo OFX** no v1. Confirme na referência
-> antes de assumir o contrário.
+> via **borderô (baixa)** de contas a pagar/receber. Não há endpoint de
+> "lançamento de caixa avulso" nem de "transferência entre contas" (confirmado —
+> existe só na UI). Logo: crédito-de-venda e despesa-nova são expressáveis por
+> API; **transferência interna e pró-labore saem por OFX** no v1. Os campos exatos
+> do POST de borderô (taxa/desconto) e do portador ainda precisam de confirmação
+> no sandbox — ver [Bling-API-v3.md](./Bling-API-v3.md) §3 e §7.
 
 ---
 
@@ -228,8 +249,9 @@ Base: `https://api.bling.com.br/Api/v3` · Auth: OAuth 2.0 Bearer.
 
 Duas camadas, ambas no seu repertório (outbox/CAPI):
 
-1. **Ingestão:** `UNIQUE(pluggy_transaction_id)`. O mesmo movimento aparecendo em
-   pulls de dias diferentes não duplica.
+1. **Ingestão:** `UNIQUE(empresa_id, pluggy_transaction_id)`. O mesmo movimento
+   aparecendo em pulls de dias diferentes não duplica, e a deduplicação é
+   escopada por empresa.
 2. **Escrita no Bling:** padrão outbox. A transação só sai do estado `escrito_api`
    quando o `bling_bordero_id` volta. Em retry, checar se já existe baixa antes de
    reenviar (idempotência da escrita). Nunca criar lançamento sem passar pela
@@ -263,8 +285,12 @@ Vão para a fila (não automatizar no v1):
 - ⚠️ **Transferência interna via API** — provável fallback p/ OFX (§7).
 - ⚠️ **Consentimento Open Finance** — o Pluggy avisa e a renovação é simples, mas
   não é zero-toque; PJ com múltiplas alçadas tem fricção extra.
-- ⚠️ **Meu Pluggy free** — confirmar se há teto de conexões / rate limit no tier
-  gratuito (volume atual ~6 req/dia é folgado).
+- **Custo do Pluggy: resolvido.** Cada empresa usa o **seu próprio Meu Pluggy**
+  (tier free), então o custo é **R$0 por empresa**, sem licença multi-tenant. Em
+  contrapartida, o Conciliador passa a **guardar as credenciais do Meu Pluggy por
+  empresa**, o que torna a **criptografia em repouso** dessas credenciais um
+  requisito firme (não mais opcional — ver Backend §18.9). Confirmar apenas o
+  rate limit do free tier (volume por empresa ~6 req/dia é folgado).
 - **Granularidade de adquirência** — v1 registra líquido e deriva a taxa do gap.
   Se um dia quiser taxa por adquirente, entra MP/Stone direto só p/ essas contas.
 
@@ -279,8 +305,11 @@ Vão para a fila (não automatizar no v1):
 - Incluir as dependências: Spring Web, Thymeleaf, Spring Data JPA, PostgreSQL
   Driver, Flyway Migration, Validation, Actuator e Spring Security.
 - Não usar Lombok. Para DTOs, preferir `record` do Java 21.
-- Configurar desde o início ao menos **HTTP Basic** com Spring Security na fila
-  de revisão, mesmo sendo uma aplicação interna.
+- Configurar desde o início **form login com sessão e CSRF** (Spring Security),
+  protegendo toda a aplicação exceto cadastro, login, estáticos, callbacks
+  estritamente necessários e `/actuator/health`. O isolamento por tenant
+  (`empresa_id` da sessão) acompanha a segurança desde o passo 1. Ver
+  [Setup-SpringBoot.md](./Setup-SpringBoot.md) §7.
 
 ### 11.2 Organização por feature
 
@@ -337,8 +366,10 @@ cluster.
 
 ### 11.7 Interface web
 
-- Usar Thymeleaf com HTMX fornecido por **WebJar**, com versão fixada e disponível
-  offline; não carregar o HTMX por CDN.
+- Usar Thymeleaf com HTMX e **Bootstrap** fornecidos por **WebJar**, com versão
+  fixada e disponível offline; não carregar nada por CDN. Identidade visual por
+  CSS próprio com custom properties. Ver [Frontend](./Frontend.md) §3 e
+  [Frontend-Implementacao.md](./Frontend-Implementacao.md) §3.
 - Implementar a fila de revisão como uma página Thymeleaf e um `th:fragment`.
   Ações de aprovar, editar e rotear retornam o fragmento HTML que o HTMX
   substitui na tela.
@@ -354,9 +385,10 @@ cluster.
 
 ### 11.9 Configuração e segredos
 
-- Manter em `application.yml` somente placeholders como `${PLUGGY_API_KEY}` e
-  `${BLING_CLIENT_SECRET}`.
-- Fornecer os valores por variáveis de ambiente. No desenvolvimento, usar um
+- Manter em `application.yml` somente placeholders como `${BLING_CLIENT_SECRET}` e
+  `${CRIPTO_KEY}` (chave de cifragem). As credenciais do **Meu Pluggy não são
+  globais**: cada empresa informa as suas, que ficam no banco criptografadas.
+- Fornecer os valores de ambiente por variáveis. No desenvolvimento, usar um
   arquivo `.env` incluído no `.gitignore`.
 - Nunca versionar credenciais.
 

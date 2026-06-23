@@ -108,8 +108,10 @@ específicas de cada integração.
 
 - `empresaId` vem da sessão.
 - Toda integração é carregada por `id + empresa_id`.
-- O browser não recebe access token nem refresh token.
-- Credenciais globais da aplicação permanecem na configuração do servidor.
+- O browser não recebe access token, refresh token nem credenciais do Meu Pluggy.
+- As credenciais do **Meu Pluggy são por empresa**, guardadas no banco
+  criptografadas; só as credenciais do app **Bling** (OAuth) ficam na configuração
+  do servidor.
 - Conta bancária não pode ser vinculada manualmente a outra empresa.
 - Status é derivado no backend.
 - Erro persistido é sanitizado antes de virar mensagem.
