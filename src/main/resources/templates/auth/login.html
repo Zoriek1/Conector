@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Entrar')}"></head>
+<body class="bg-light">
+<main class="container" style="max-width: 420px; margin-top: 8vh;">
+    <h1 class="h3 mb-4 text-center">Conciliador</h1>
+
+    <!-- Mensagens vêm como query params do Spring Security; nunca revelam se o
+         e-mail existe (tela 01). -->
+    <div th:if="${param.erro}" class="alert alert-danger" role="alert">
+        E-mail ou senha inválidos.
+    </div>
+    <div th:if="${param.saiu}" class="alert alert-success" role="alert">
+        Você saiu da sua conta.
+    </div>
+    <div th:if="${param.cadastro}" class="alert alert-success" role="alert">
+        Conta criada! Entre com suas credenciais.
+    </div>
+
+    <!-- th:action faz o Thymeleaf incluir o token CSRF automaticamente.
+         Os campos username/password são os nomes esperados pelo Spring Security. -->
+    <form th:action="@{/entrar}" method="post" class="card card-body shadow-sm">
+        <div class="mb-3">
+            <label for="username" class="form-label">E-mail</label>
+            <input type="email" id="username" name="username" class="form-control"
+                   autocomplete="username" required autofocus>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Senha</label>
+            <input type="password" id="password" name="password" class="form-control"
+                   autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Entrar</button>
+    </form>
+
+    <p class="text-center mt-3">
+        <a th:href="@{/cadastro}">Criar conta</a>
+    </p>
+</main>
+</body>
+</html>

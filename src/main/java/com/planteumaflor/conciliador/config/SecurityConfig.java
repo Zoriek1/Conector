@@ -13,8 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
  * Form login + sessão + CSRF (habilitado por padrão). Tudo exige autenticação,
  * exceto login/cadastro, recursos estáticos e o health do Actuator.
  *
- * No esqueleto usamos a página de login padrão do Spring. No passo 2 ela será
- * trocada por {@code loginPage("/entrar")} com template Thymeleaf (tela 01).
+ * A tela de login é a nossa ({@code /entrar}, tela 01). O POST de credenciais é
+ * processado pelo próprio Spring Security (loginProcessingUrl). O carregamento
+ * do usuário vem do nosso UsuarioDetailsService, descoberto automaticamente.
  */
 @Configuration
 class SecurityConfig {
@@ -28,8 +29,18 @@ class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form.permitAll())   // TODO passo 2: loginPage("/entrar")
-                .logout(logout -> logout.permitAll());
+                .formLogin(form -> form
+                        .loginPage("/entrar")            // GET: nossa tela Thymeleaf
+                        .loginProcessingUrl("/entrar")   // POST: processado pelo Spring
+                        .defaultSuccessUrl("/inicio", true)
+                        .failureUrl("/entrar?erro")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/sair")
+                        .logoutSuccessUrl("/entrar?saiu")
+                        .permitAll()
+                );
         return http.build();
     }
 

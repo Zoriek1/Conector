@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Fragmento de <head> compartilhado. As páginas o incluem com:
+    <head th:replace="~{fragments/layout :: head('Título')}"></head>
+  Bootstrap e (futuramente) HTMX são servidos por WebJar, nunca por CDN.
+-->
+<head th:fragment="head(titulo)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Conciliador'">Conciliador</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+</head>
+<body></body>
+</html>
