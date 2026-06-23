@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 /**
  * Segurança base (Backend §11).
@@ -21,7 +22,7 @@ import org.springframework.security.web.SecurityFilterChain;
 class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, AuthenticationSuccessHandler successHandler) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/entrar", "/cadastro").permitAll()
@@ -32,7 +33,7 @@ class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/entrar")            // GET: nossa tela Thymeleaf
                         .loginProcessingUrl("/entrar")   // POST: processado pelo Spring
-                        .defaultSuccessUrl("/inicio", true)
+                        .successHandler(successHandler)  // decide onboarding vs inicio
                         .failureUrl("/entrar?erro")
                         .permitAll()
                 )
