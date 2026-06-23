@@ -92,11 +92,10 @@ conciliação completamente automática de casos ambíguos.
 
 ## Status
 
-O projeto está em fase de especificação. A arquitetura, o backend, o frontend e
-os contratos das telas estão documentados antes do início da implementação. As
-specs foram auditadas para consistência e a API do Bling foi levantada para
-fechar as decisões em aberto; os guias de setup do Spring Boot e de implementação
-do frontend já estão prontos para o passo 1.
+A implementação está em andamento na branch `dev` (passos 1–3). Login e
+cadastro foram corrigidos conforme o contrato das telas 01 e 02, com 35 testes
+verdes. Os próximos passos — passo 4 (domínio de transações) em diante — estão
+em [`SPECS/PROXIMOS-PASSOS.md`](./SPECS/PROXIMOS-PASSOS.md).
 
 ## Documentação
 
@@ -106,10 +105,12 @@ do frontend já estão prontos para o passo 1.
 
 Guias complementares:
 
+- [Próximos passos](./SPECS/PROXIMOS-PASSOS.md)
 - [Auditoria de consistência das specs](./SPECS/AUDITORIA-consistencia.md)
 - [API v3 do Bling — decisões](./SPECS/Bling-API-v3.md)
 - [Setup Spring Boot](./SPECS/Setup-SpringBoot.md)
 - [Frontend — implementação](./SPECS/Frontend-Implementacao.md)
+- [Correções de implementação por tela](./SPECS/implementação/README.md)
 
 Telas:
 
