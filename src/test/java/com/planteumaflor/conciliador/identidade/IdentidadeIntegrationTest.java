@@ -69,13 +69,14 @@ class IdentidadeIntegrationTest {
     }
 
     @Test
-    void loginValidoAutenticaERedirecionaParaInicio() throws Exception {
+    void loginValidoSemPluggyVaiParaOnboarding() throws Exception {
+        // Empresa recém-criada não tem Pluggy ativo -> onboarding (tela 01).
         cadastrar.executar(new CadastrarEmpresaCommand(
                 "Empresa", null, "Ana", "login@example.com", "senha-supersegura"));
 
         mvc.perform(formLogin("/entrar").user("login@example.com").password("senha-supersegura"))
                 .andExpect(authenticated().withUsername("login@example.com"))
-                .andExpect(redirectedUrl("/inicio"));
+                .andExpect(redirectedUrl("/onboarding"));
     }
 
     @Test

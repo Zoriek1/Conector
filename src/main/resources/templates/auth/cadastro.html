@@ -39,8 +39,8 @@
 
         <div class="mb-3">
             <label for="senha" class="form-label">Senha</label>
-            <input type="password" id="senha" th:field="*{senha}" class="form-control"
-                   autocomplete="new-password">
+            <input type="password" id="senha" name="senha" class="form-control"
+                   autocomplete="new-password" required>
             <div class="form-text">Ao menos 8 caracteres.</div>
             <div class="text-danger small" th:if="${#fields.hasErrors('senha')}"
                  th:errors="*{senha}">erro</div>
@@ -48,8 +48,8 @@
 
         <div class="mb-3">
             <label for="confirmarSenha" class="form-label">Confirmar senha</label>
-            <input type="password" id="confirmarSenha" th:field="*{confirmarSenha}" class="form-control"
-                   autocomplete="new-password">
+            <input type="password" id="confirmarSenha" name="confirmarSenha" class="form-control"
+                   autocomplete="new-password" required>
             <div class="text-danger small" th:if="${#fields.hasErrors('confirmarSenha')}"
                  th:errors="*{confirmarSenha}">erro</div>
         </div>
