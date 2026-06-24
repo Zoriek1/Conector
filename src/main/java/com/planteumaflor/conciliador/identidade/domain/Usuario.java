@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -41,6 +42,14 @@ public class Usuario {
 
     @Column(name = "ativo")
     private boolean ativo;
+
+    /**
+     * Quando a senha foi alterada pela última vez (tela 09 §4). Na inserção o
+     * default {@code now()} do banco vale ({@code insertable = false}); a troca
+     * de senha atualiza este campo via {@link #alterarSenha(String, Instant)}.
+     */
+    @Column(name = "senha_alterada_em", insertable = false)
+    private Instant senhaAlteradaEm;
 
     @Version
     @Column(name = "version")
@@ -77,6 +86,20 @@ public class Usuario {
         return valor.strip();
     }
 
+    /**
+     * Troca a senha (tela 09 §7). Recebe o hash já codificado e o instante da
+     * troca — a codificação e o relógio ficam no caso de uso, nunca aqui.
+     */
+    public void alterarSenha(String novoHash, Instant quando) {
+        this.senhaHash = Objects.requireNonNull(novoHash, "novoHash é obrigatório");
+        this.senhaAlteradaEm = Objects.requireNonNull(quando, "quando é obrigatório");
+    }
+
+    /** Atualiza o nome do responsável (único campo editável no perfil — tela 09 §8). */
+    public void alterarNomeResponsavel(String nome) {
+        this.nome = exigirTexto(nome, "nome do responsável");
+    }
+
     public UUID getId() {
         return id;
     }
@@ -99,5 +122,9 @@ public class Usuario {
 
     public boolean isAtivo() {
         return ativo;
+    }
+
+    public Instant getSenhaAlteradaEm() {
+        return senhaAlteradaEm;
     }
 }

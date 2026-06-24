@@ -7,6 +7,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
@@ -14,6 +16,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 /**
  * Segurança base (Backend §11).
@@ -32,7 +35,8 @@ class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http,
                                     AuthenticationSuccessHandler successHandler,
                                     RequestCache requestCache,
-                                    SecurityContextRepository securityContextRepository) throws Exception {
+                                    SecurityContextRepository securityContextRepository,
+                                    SessionRegistry sessionRegistry) throws Exception {
         http
                 .addFilterBefore(new InvalidSessionRedirectFilter(), SecurityContextHolderFilter.class)
                 .authorizeHttpRequests(auth -> auth
@@ -41,6 +45,11 @@ class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated()
                 )
+                // Registra as sessões (sem limite) para permitir encerrar as
+                // demais a partir do perfil (tela 09 §9).
+                .sessionManagement(session -> session
+                        .maximumSessions(-1)
+                        .sessionRegistry(sessionRegistry))
                 .formLogin(form -> form
                         .loginPage("/entrar")            // GET: nossa tela Thymeleaf
                         .loginProcessingUrl("/entrar")   // POST: processado pelo Spring
@@ -70,6 +79,18 @@ class SecurityConfig {
     @Bean
     SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
+    }
+
+    /** Mantém o mapa de sessões por principal, base do "encerrar outras sessões". */
+    @Bean
+    SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    /** Propaga eventos de criação/expiração de sessão para o {@link SessionRegistry}. */
+    @Bean
+    HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     @Bean

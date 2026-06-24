@@ -55,4 +55,10 @@ public class Empresa {
     public String getNome() {
         return nome;
     }
+
+    /** CNPJ bruto (pode ser nulo no v1). O mascaramento para exibição é da camada
+     * de aplicação — a entidade não decide formatação (tela 09 §4). */
+    public String getCnpj() {
+        return cnpj;
+    }
 }
