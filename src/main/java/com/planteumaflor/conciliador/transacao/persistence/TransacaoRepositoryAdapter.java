@@ -1,7 +1,10 @@
 package com.planteumaflor.conciliador.transacao.persistence;
 
+import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import com.planteumaflor.conciliador.transacao.domain.Transacao;
 import com.planteumaflor.conciliador.transacao.domain.TransacaoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -27,8 +30,13 @@ class TransacaoRepositoryAdapter implements TransacaoRepository {
     }
 
     @Override
-    public boolean existePorOrigem(UUID empresaId, String pluggyTransactionId) {
-        return springData.existsByEmpresaIdAndPluggyTransactionId(
-                empresaId, pluggyTransactionId);
+    public boolean existePorOrigem(UUID empresaId, FonteIntegracao fonte, String idTransacaoExterna) {
+        return springData.existsByEmpresaIdAndFonteAndIdTransacaoExterna(
+                empresaId, fonte, idTransacaoExterna);
+    }
+
+    @Override
+    public Page<Transacao> listarPorEmpresa(UUID empresaId, Pageable pageable) {
+        return springData.findByEmpresaId(empresaId, pageable);
     }
 }

@@ -31,6 +31,7 @@ public record ConciliadorProperties(
         @NotNull @Valid Classificacao classificacao,
         @Valid Bling bling,
         @Valid Pluggy pluggy,
+        @Valid Cora cora,
         @Valid Cripto cripto
 ) {
 
@@ -53,6 +54,19 @@ public record ConciliadorProperties(
 
     public record Pluggy(
             String baseUrl
+    ) {}
+
+    /**
+     * Endpoints da "Integração Direta" do Cora (OAuth client-credentials + mTLS
+     * por empresa). Os paths abaixo são o melhor entendimento dos docs públicos
+     * e PRECISAM ser confirmados contra o sandbox real do Cora antes de uso em
+     * produção — ver risco documentado no plano de integração.
+     */
+    public record Cora(
+            String baseUrl,
+            String tokenPath,
+            String extratoPath,
+            String saldoPath
     ) {}
 
     public record Cripto(
