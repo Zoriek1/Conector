@@ -94,8 +94,12 @@ conciliação completamente automática de casos ambíguos.
 
 A implementação está em andamento na branch `dev` (passos 1–3). Login e
 cadastro foram corrigidos conforme o contrato das telas 01 e 02, com 35 testes
-verdes. Os próximos passos — passo 4 (domínio de transações) em diante — estão
-em [`SPECS/PROXIMOS-PASSOS.md`](./SPECS/PROXIMOS-PASSOS.md).
+verdes. A tela 09 (Perfil) está implementada de ponta a ponta — dados da
+empresa/acesso, troca de senha, edição do responsável, encerrar outras sessões
+e logout. As telas 05 (Revisão), 07 (Integrações) e 08 (Lotes OFX) dependem de
+domínios ainda não construídos (`match`, `outbox`, `ofx`, integração Bling). Os
+próximos passos — passo 4 (domínio de transações) em diante — estão em
+[`SPECS/PROXIMOS-PASSOS.md`](./SPECS/PROXIMOS-PASSOS.md).
 
 ## Documentação
 
