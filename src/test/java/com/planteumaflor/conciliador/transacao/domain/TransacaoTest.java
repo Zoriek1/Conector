@@ -92,6 +92,7 @@ class TransacaoTest {
     private DadosTransacao dados(BigDecimal valor) {
         return new DadosTransacao(
                 UUID.randomUUID(),
+                FonteIntegracao.PLUGGY,
                 "pluggy-transaction-1",
                 "pluggy-account-1",
                 "cora",

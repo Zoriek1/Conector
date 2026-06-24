@@ -8,8 +8,9 @@ import java.util.UUID;
 /** Dados canônicos produzidos na borda de ingestão para criar uma transação. */
 public record DadosTransacao(
         UUID empresaId,
-        String pluggyTransactionId,
-        String pluggyAccountId,
+        FonteIntegracao fonte,
+        String idTransacaoExterna,
+        String idContaExterna,
         String contaLocal,
         LocalDate data,
         BigDecimal valorLiquido,
@@ -20,6 +21,7 @@ public record DadosTransacao(
 ) {
     public DadosTransacao {
         Objects.requireNonNull(empresaId, "empresaId é obrigatório");
+        Objects.requireNonNull(fonte, "fonte é obrigatória");
         Objects.requireNonNull(data, "data é obrigatória");
         Objects.requireNonNull(valorLiquido, "valorLiquido é obrigatório");
         Objects.requireNonNull(direcao, "direcao é obrigatória");

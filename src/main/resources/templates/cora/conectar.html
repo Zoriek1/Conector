@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Integração Cora')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+
+<main class="container" style="max-width: 640px;">
+    <h1 class="h3 mb-4">Integração direta com o Cora</h1>
+
+    <div th:if="${sucesso}" class="alert alert-success" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
+
+    <form th:action="@{/integracoes/cora/conectar}" method="post" class="mb-4">
+        <div class="mb-3">
+            <label for="clientId" class="form-label">Client ID</label>
+            <input type="text" class="form-control" id="clientId" name="clientId" required>
+        </div>
+        <div class="mb-3">
+            <label for="certificadoPem" class="form-label">Certificado (PEM)</label>
+            <textarea class="form-control" id="certificadoPem" name="certificadoPem" rows="6" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="chavePrivadaPem" class="form-label">Chave privada (PEM)</label>
+            <textarea class="form-control" id="chavePrivadaPem" name="chavePrivadaPem" rows="6" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Cadastrar credencial</button>
+    </form>
+
+    <form th:action="@{/integracoes/cora/sincronizar}" method="post">
+        <button type="submit" class="btn btn-primary">Sincronizar agora</button>
+    </form>
+
+    <p class="text-muted small mt-3">
+        As credenciais são armazenadas cifradas e só são decifradas no momento da chamada ao Cora.
+    </p>
+</main>
+</body>
+</html>
