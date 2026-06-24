@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Barra superior da área autenticada (app shell mínimo). Inclua com:
+    <nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+  A sidebar completa (tela 04/05) é refinamento posterior.
+-->
+<body>
+<nav th:fragment="navbar(email)" class="navbar navbar-expand bg-white border-bottom mb-4">
+    <div class="container-fluid">
+        <span class="navbar-brand fw-semibold">Conciliador</span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small" th:text="${email}">email</span>
+            <form th:action="@{/sair}" method="post" class="m-0">
+                <button class="btn btn-outline-secondary btn-sm" type="submit">Sair</button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

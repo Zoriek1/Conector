@@ -7,10 +7,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * Placeholder do passo 2: prova que o usuário autenticado e o tenant
+ * Placeholder atual: prova que o usuário autenticado e o tenant
  * ({@code empresaId}) chegam ao controller pela sessão — nunca pelo navegador.
  *
- * No passo 3 esta tela ganha cards, integrações e atividade (tela 04).
+ * Cards, integrações e atividade permanecem no marco da tela 04.
  */
 @Controller
 class InicioController {
