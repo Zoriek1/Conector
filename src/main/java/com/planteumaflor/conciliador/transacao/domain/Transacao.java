@@ -28,8 +28,8 @@ import java.util.UUID;
 @Table(
         name = "transacao",
         uniqueConstraints = @UniqueConstraint(
-                name = "uq_transacao_pluggy",
-                columnNames = {"empresa_id", "pluggy_transaction_id"}))
+                name = "uq_transacao_origem",
+                columnNames = {"empresa_id", "fonte", "id_transacao_externa"}))
 public class Transacao {
 
     @Id
@@ -40,11 +40,15 @@ public class Transacao {
     @Column(name = "empresa_id", nullable = false)
     private UUID empresaId;
 
-    @Column(name = "pluggy_transaction_id", nullable = false)
-    private String pluggyTransactionId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fonte", nullable = false)
+    private FonteIntegracao fonte;
 
-    @Column(name = "pluggy_account_id", nullable = false)
-    private String pluggyAccountId;
+    @Column(name = "id_transacao_externa", nullable = false)
+    private String idTransacaoExterna;
+
+    @Column(name = "id_conta_externa", nullable = false)
+    private String idContaExterna;
 
     @Column(name = "conta_local", nullable = false)
     private String contaLocal;
@@ -126,10 +130,11 @@ public class Transacao {
 
         Transacao transacao = new Transacao();
         transacao.empresaId = dados.empresaId();
-        transacao.pluggyTransactionId = exigirTexto(
-                dados.pluggyTransactionId(), "pluggyTransactionId");
-        transacao.pluggyAccountId = exigirTexto(
-                dados.pluggyAccountId(), "pluggyAccountId");
+        transacao.fonte = Objects.requireNonNull(dados.fonte(), "fonte é obrigatória");
+        transacao.idTransacaoExterna = exigirTexto(
+                dados.idTransacaoExterna(), "idTransacaoExterna");
+        transacao.idContaExterna = exigirTexto(
+                dados.idContaExterna(), "idContaExterna");
         transacao.contaLocal = exigirTexto(dados.contaLocal(), "contaLocal");
         transacao.data = dados.data();
         transacao.valorLiquido = normalizarDinheiroPositivo(
@@ -274,8 +279,24 @@ public class Transacao {
         return empresaId;
     }
 
-    public String getPluggyTransactionId() {
-        return pluggyTransactionId;
+    public FonteIntegracao getFonte() {
+        return fonte;
+    }
+
+    public String getIdTransacaoExterna() {
+        return idTransacaoExterna;
+    }
+
+    public String getIdContaExterna() {
+        return idContaExterna;
+    }
+
+    public String getContaLocal() {
+        return contaLocal;
+    }
+
+    public LocalDate getData() {
+        return data;
     }
 
     public BigDecimal getValorLiquido() {
@@ -296,6 +317,10 @@ public class Transacao {
 
     public EstadoTransacao getEstado() {
         return estado;
+    }
+
+    public String getDescricaoRaw() {
+        return descricaoRaw;
     }
 
     public String getMotivoRevisao() {

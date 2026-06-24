@@ -1,5 +1,8 @@
 package com.planteumaflor.conciliador.transacao.domain;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,5 +13,7 @@ public interface TransacaoRepository {
 
     Optional<Transacao> buscarPorId(UUID empresaId, UUID transacaoId);
 
-    boolean existePorOrigem(UUID empresaId, String pluggyTransactionId);
+    boolean existePorOrigem(UUID empresaId, FonteIntegracao fonte, String idTransacaoExterna);
+
+    Page<Transacao> listarPorEmpresa(UUID empresaId, Pageable pageable);
 }

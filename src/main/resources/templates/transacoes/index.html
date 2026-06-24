@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Transações')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+
+<main class="container">
+    <h1 class="h3 mb-4">Transações</h1>
+
+    <div th:if="${transacoes.empty}" class="alert alert-secondary">
+        Nenhuma transação encontrada ainda. Conecte uma integração e sincronize para ver os lançamentos aqui.
+    </div>
+
+    <div th:unless="${transacoes.empty}" class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Conta</th>
+                <th>Descrição</th>
+                <th class="text-end">Valor</th>
+                <th>Direção</th>
+                <th>Classe</th>
+                <th class="text-end">Confiança</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${transacoes.content}">
+                <td th:text="${t.data}">2026-01-01</td>
+                <td th:text="${t.contaLocal}">conta</td>
+                <td th:text="${t.descricaoRaw}">descrição</td>
+                <td class="text-end" th:text="${t.valorLiquido}">0.00</td>
+                <td th:text="${t.direcao}">CREDITO</td>
+                <td th:text="${t.classe}">INDEFINIDO</td>
+                <td class="text-end" th:text="${t.confianca}">0.000</td>
+                <td th:text="${t.estado}">INGERIDO</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:if="${transacoes.totalPages} gt 1" aria-label="Paginação">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${transacoes.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/transacoes(page=${transacoes.number - 1})}">Anterior</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link" th:text="${transacoes.number + 1} + ' / ' + ${transacoes.totalPages}">1 / 1</span>
+            </li>
+            <li class="page-item" th:classappend="${transacoes.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/transacoes(page=${transacoes.number + 1})}">Próxima</a>
+            </li>
+        </ul>
+    </nav>
+</main>
+</body>
+</html>
