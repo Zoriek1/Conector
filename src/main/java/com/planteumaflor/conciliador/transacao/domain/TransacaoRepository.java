@@ -11,9 +11,15 @@ public interface TransacaoRepository {
 
     Transacao salvar(Transacao transacao);
 
+    /** Insere de forma atômica; retorna falso quando a origem já existe. */
+    boolean inserirSeAusente(Transacao transacao);
+
     Optional<Transacao> buscarPorId(UUID empresaId, UUID transacaoId);
 
     boolean existePorOrigem(UUID empresaId, FonteIntegracao fonte, String idTransacaoExterna);
 
     Page<Transacao> listarPorEmpresa(UUID empresaId, Pageable pageable);
+
+    Page<Transacao> listarPorEstado(
+            UUID empresaId, EstadoTransacao estado, Pageable pageable);
 }

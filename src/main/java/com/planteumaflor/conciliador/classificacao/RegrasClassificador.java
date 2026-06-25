@@ -8,6 +8,7 @@ import com.planteumaflor.conciliador.transacao.domain.Transacao;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.Locale;
 
 /** Heurísticas por palavra-chave na descrição e no sinal do movimento. */
@@ -32,27 +33,37 @@ class RegrasClassificador implements Classificador {
     }
 
     private Resultado aplicarRegras(String descricao, Direcao direcao) {
-        if (contemAlguma(descricao, "pro labore", "pró-labore", "prolabore")) {
+        if (direcao == Direcao.DEBITO
+                && contemAlguma(descricao, "pro labore", "prolabore")) {
             return new Resultado(
                     ClasseTransacao.PRO_LABORE,
                     Confianca.de(new BigDecimal("0.950")),
                     "descrição indica pró-labore");
         }
-        if (contemAlguma(descricao, "transferencia entre contas", "transferência entre contas", "ted mesma titularidade")) {
+        if (contemAlguma(descricao,
+                "transferencia entre contas",
+                "ted mesma titularidade",
+                "pix entre contas",
+                "mesma titularidade")) {
             return new Resultado(
                     ClasseTransacao.TRANSFERENCIA_INTERNA,
                     Confianca.de(new BigDecimal("0.950")),
                     "descrição indica transferência entre contas próprias");
         }
         if (direcao == Direcao.CREDITO
-                && contemAlguma(descricao, "pix recebido", "boleto recebido", "venda", "recebimento")) {
+                && contemAlguma(descricao,
+                "pix recebido", "boleto recebido", "boleto liquidado",
+                "venda", "recebimento de cliente")) {
             return new Resultado(
                     ClasseTransacao.CREDITO_VENDA,
                     Confianca.de(new BigDecimal("0.920")),
                     "crédito com descrição de recebimento/venda");
         }
         if (direcao == Direcao.DEBITO
-                && contemAlguma(descricao, "taxa", "tarifa", "folha de pagamento", "salario", "salário")) {
+                && contemAlguma(descricao,
+                "taxa", "tarifa", "folha de pagamento", "salario",
+                "pagamento fornecedor", "imposto", "tributo", "aluguel",
+                "energia eletrica", "internet", "contabilidade")) {
             return new Resultado(
                     ClasseTransacao.DEBITO_DESPESA,
                     Confianca.de(new BigDecimal("0.920")),
@@ -72,7 +83,16 @@ class RegrasClassificador implements Classificador {
 
     private String descricaoNormalizada(Transacao transacao) {
         String raw = transacao.getDescricaoRaw();
-        return raw == null ? "" : raw.toLowerCase(Locale.ROOT);
+        if (raw == null) {
+            return "";
+        }
+        String semAcentos = Normalizer.normalize(raw, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return semAcentos
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", " ")
+                .trim()
+                .replaceAll("\\s+", " ");
     }
 
     private record Resultado(ClasseTransacao classe, Confianca confianca, String justificativa) {}

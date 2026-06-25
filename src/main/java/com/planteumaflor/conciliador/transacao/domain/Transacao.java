@@ -323,6 +323,18 @@ public class Transacao {
         return descricaoRaw;
     }
 
+    public String getContraparteDoc() {
+        return contraparteDoc;
+    }
+
+    public String getE2eId() {
+        return e2eId;
+    }
+
+    public String getJustificativaClassificacao() {
+        return justificativaClassificacao;
+    }
+
     public String getMotivoRevisao() {
         return motivoRevisao;
     }

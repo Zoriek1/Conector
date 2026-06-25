@@ -49,7 +49,7 @@ class CriptoServiceTest {
     private ConciliadorProperties propriedadesCom(String chave) {
         return new ConciliadorProperties(
                 "America/Sao_Paulo",
-                new ConciliadorProperties.Ingest("0 0 4 * * *", 7),
+                new ConciliadorProperties.Ingest("0 0 4 * * *", 7, 3, java.time.Duration.ofSeconds(2)),
                 new ConciliadorProperties.Classificacao(
                         new BigDecimal("0.900"), new BigDecimal("0.100")),
                 new ConciliadorProperties.Bling(null, null, null, Duration.ofMinutes(2)),

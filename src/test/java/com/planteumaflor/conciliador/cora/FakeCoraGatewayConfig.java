@@ -25,9 +25,14 @@ public class FakeCoraGatewayConfig {
     public static final class FakeCoraGateway implements CoraGateway {
 
         private List<LancamentoExtrato> lancamentos = List.of();
+        private RuntimeException falhaExtrato;
 
         public void definirLancamentos(List<LancamentoExtrato> lancamentos) {
             this.lancamentos = lancamentos;
+        }
+
+        public void definirFalhaExtrato(RuntimeException falhaExtrato) {
+            this.falhaExtrato = falhaExtrato;
         }
 
         @Override
@@ -37,6 +42,9 @@ public class FakeCoraGatewayConfig {
 
         @Override
         public List<LancamentoExtrato> extrato(CredenciaisCora credenciais, LocalDate de, LocalDate ate) {
+            if (falhaExtrato != null) {
+                throw falhaExtrato;
+            }
             return lancamentos;
         }
     }

@@ -38,6 +38,8 @@ conciliador:
   ingest:
     cron: ${INGEST_CRON:0 0 4 * * *}
     dias-retroativos: ${INGEST_LOOKBACK_DAYS:7}
+    max-tentativas: ${INGEST_MAX_ATTEMPTS:3}
+    atraso-retry: ${INGEST_RETRY_DELAY:PT2S}
   classificacao:
     confianca-automatica: ${AUTO_CONFIDENCE:0.900}
     tolerancia-taxa: ${FEE_TOLERANCE:0.100}

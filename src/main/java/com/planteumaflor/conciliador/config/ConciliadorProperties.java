@@ -37,7 +37,9 @@ public record ConciliadorProperties(
 
     public record Ingest(
             @NotBlank String cron,
-            @Positive int diasRetroativos
+            @Positive int diasRetroativos,
+            @Positive int maxTentativas,
+            @NotNull Duration atrasoRetry
     ) {}
 
     public record Classificacao(

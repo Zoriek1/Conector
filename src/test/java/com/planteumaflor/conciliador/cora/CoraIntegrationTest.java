@@ -7,6 +7,7 @@ import com.planteumaflor.conciliador.cora.application.CoraGateway;
 import com.planteumaflor.conciliador.cora.application.SincronizarExtratoCora;
 import com.planteumaflor.conciliador.cora.domain.IntegracaoCora;
 import com.planteumaflor.conciliador.cora.domain.StatusIntegracaoCora;
+import com.planteumaflor.conciliador.cora.domain.TipoFalhaCora;
 import com.planteumaflor.conciliador.cora.persistence.IntegracaoCoraJpaRepository;
 import com.planteumaflor.conciliador.identidade.application.CadastrarEmpresaEUsuario;
 import com.planteumaflor.conciliador.identidade.application.CadastrarEmpresaEUsuario.CadastrarEmpresaCommand;
@@ -20,12 +21,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Testes do bounded context Cora (cadastro de credencial cifrada, sincronização
@@ -48,6 +51,7 @@ class CoraIntegrationTest {
     @BeforeEach
     void preparar() {
         gateway.definirLancamentos(java.util.List.of());
+        gateway.definirFalhaExtrato(null);
         limparBanco();
     }
 
@@ -123,6 +127,30 @@ class CoraIntegrationTest {
                 .isEqualTo(1);
         assertThat(transacoes.listarPorEmpresa(empresaB, PageRequest.of(0, 10)).getTotalElements())
                 .isEqualTo(0);
+    }
+
+    @Test
+    void falhaFicaRegistradaESucessoPosteriorRecuperaIntegracao() {
+        UUID empresaId = cadastrarEmpresa("cora-saude@example.com");
+        cadastrarCredencial.cadastrar(empresaId, "client-1", "cert-pem", "chave-pem");
+        gateway.definirFalhaExtrato(new ResourceAccessException("indisponível"));
+
+        assertThatThrownBy(() -> sincronizarExtrato.sincronizar(empresaId))
+                .isInstanceOf(ResourceAccessException.class);
+
+        IntegracaoCora comFalha = integracoes.findByEmpresaId(empresaId).orElseThrow();
+        assertThat(comFalha.getStatus()).isEqualTo(StatusIntegracaoCora.REQUER_ATENCAO);
+        assertThat(comFalha.getUltimaFalhaTipo()).isEqualTo(TipoFalhaCora.COMUNICACAO);
+        assertThat(comFalha.getFalhasConsecutivas()).isEqualTo(1);
+        assertThat(comFalha.getUltimaFalhaEm()).isNotNull();
+
+        gateway.definirFalhaExtrato(null);
+        sincronizarExtrato.sincronizar(empresaId);
+
+        IntegracaoCora recuperada = integracoes.findByEmpresaId(empresaId).orElseThrow();
+        assertThat(recuperada.getStatus()).isEqualTo(StatusIntegracaoCora.ATIVA);
+        assertThat(recuperada.getFalhasConsecutivas()).isZero();
+        assertThat(recuperada.getUltimaFalhaTipo()).isNull();
     }
 
     private void assertThatSincronizarFalhaSemIntegracao(UUID empresaId) {

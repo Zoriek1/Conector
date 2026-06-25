@@ -80,6 +80,21 @@ class TransacaoIntegrationTest {
     }
 
     @Test
+    void insertIdempotenteIgnoraMesmaOrigemSemFalhar() {
+        UUID empresa = cadastrarEmpresa("idempotente@example.com");
+
+        boolean primeira = tx.execute(status ->
+                transacoes.inserirSeAusente(novaTransacao(empresa, "origem-1", "10.00")));
+        boolean repetida = tx.execute(status ->
+                transacoes.inserirSeAusente(novaTransacao(empresa, "origem-1", "99.00")));
+
+        assertThat(primeira).isTrue();
+        assertThat(repetida).isFalse();
+        assertThat(transacoes.listarPorEmpresa(empresa, org.springframework.data.domain.Pageable.unpaged())
+                .getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
     void optimisticLockImpedeDuasAtualizacoesConcorrentes() {
         UUID empresa = cadastrarEmpresa("lock@example.com");
         Transacao salva = salvar(novaTransacao(empresa, "lock-id", "40.00"));

@@ -46,7 +46,7 @@ class CoraController {
             cadastrarCredencial.cadastrar(principal.empresaId(), clientId, certificadoPem, chavePrivadaPem);
             model.addAttribute("sucesso", "Credencial do Cora cadastrada com sucesso.");
         } catch (RuntimeException e) {
-            model.addAttribute("erro", "Não foi possível validar a credencial do Cora: " + e.getMessage());
+            model.addAttribute("erro", "Não foi possível validar a credencial do Cora.");
         }
         return "cora/conectar";
     }
@@ -58,7 +58,7 @@ class CoraController {
             sincronizarExtrato.sincronizar(principal.empresaId());
             model.addAttribute("sucesso", "Extrato do Cora sincronizado com sucesso.");
         } catch (RuntimeException e) {
-            model.addAttribute("erro", "Não foi possível sincronizar o extrato do Cora: " + e.getMessage());
+            model.addAttribute("erro", "Não foi possível sincronizar o extrato do Cora. Tente novamente.");
         }
         return "cora/conectar";
     }

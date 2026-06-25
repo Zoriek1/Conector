@@ -1,6 +1,7 @@
 package com.planteumaflor.conciliador.transacao.persistence;
 
 import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
+import com.planteumaflor.conciliador.transacao.domain.EstadoTransacao;
 import com.planteumaflor.conciliador.transacao.domain.Transacao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,4 +20,7 @@ interface SpringDataTransacaoRepository extends Repository<Transacao, UUID> {
             UUID empresaId, FonteIntegracao fonte, String idTransacaoExterna);
 
     Page<Transacao> findByEmpresaId(UUID empresaId, Pageable pageable);
+
+    Page<Transacao> findByEmpresaIdAndEstado(
+            UUID empresaId, EstadoTransacao estado, Pageable pageable);
 }

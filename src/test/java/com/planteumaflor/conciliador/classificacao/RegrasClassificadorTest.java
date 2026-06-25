@@ -67,6 +67,25 @@ class RegrasClassificadorTest {
         assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.EM_REVISAO);
     }
 
+    @Test
+    void normalizaAcentosEPontuacaoAntesDeAplicarRegra() {
+        Transacao transacao = transacao(Direcao.DEBITO, "PAGAMENTO: ENERGIA ELÉTRICA");
+
+        classificador.classificar(transacao);
+
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.DEBITO_DESPESA);
+        assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
+    }
+
+    @Test
+    void naoClassificaProLaboreComoCredito() {
+        Transacao transacao = transacao(Direcao.CREDITO, "Pró-labore recebido");
+
+        classificador.classificar(transacao);
+
+        assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.EM_REVISAO);
+    }
+
     private Transacao transacao(Direcao direcao, String descricao) {
         return Transacao.ingerida(new DadosTransacao(
                 UUID.randomUUID(),
@@ -85,7 +104,7 @@ class RegrasClassificadorTest {
     private ConciliadorProperties propriedades() {
         return new ConciliadorProperties(
                 "America/Sao_Paulo",
-                new ConciliadorProperties.Ingest("0 0 4 * * *", 7),
+                new ConciliadorProperties.Ingest("0 0 4 * * *", 7, 3, Duration.ofSeconds(2)),
                 new ConciliadorProperties.Classificacao(
                         new BigDecimal("0.900"), new BigDecimal("0.100")),
                 new ConciliadorProperties.Bling(null, null, null, Duration.ofMinutes(2)),

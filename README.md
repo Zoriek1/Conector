@@ -3,10 +3,10 @@
 Aplicação web para centralizar, classificar e conciliar as movimentações
 financeiras da Plante Uma Flor.
 
-O sistema coleta transações bancárias pelo Pluggy, identifica sua natureza e
-prepara a conciliação no Bling. Casos seguros seguem automaticamente; situações
-ambíguas são encaminhadas para uma fila de revisão acessível pelo proprietário ou
-contador.
+O sistema coleta transações bancárias por conectores isolados — atualmente Cora
+direto e uma fundação Pluggy —, identifica sua natureza e prepara a conciliação
+no Bling. Casos seguros seguem automaticamente; situações ambíguas são
+encaminhadas para uma fila de revisão acessível pelo proprietário ou contador.
 
 ## Objetivo geral
 
@@ -26,7 +26,7 @@ O Conciliador busca evitar principalmente:
 ## Como funciona
 
 ```text
-Pluggy
+Conectores bancários (Cora / Pluggy)
    ↓
 Ingestão e normalização
    ↓
@@ -82,7 +82,8 @@ instância, com:
 - Spring MVC, Thymeleaf, HTMX e Bootstrap (via WebJar);
 - Spring Data JPA e Flyway;
 - autenticação por formulário e sessão;
-- Pluggy para agregação bancária;
+- Cora direto como primeiro conector operacional e Pluggy para agregação
+  bancária em uma etapa posterior;
 - Bling API v3 com OAuth 2.0;
 - Testcontainers para testes com PostgreSQL real;
 - imagem gerada por Cloud Native Buildpacks.
@@ -92,13 +93,15 @@ conciliação completamente automática de casos ambíguos.
 
 ## Status
 
-A implementação está em andamento na branch `dev` (passos 1–3). Login e
-cadastro foram corrigidos conforme o contrato das telas 01 e 02, com 35 testes
-verdes. A tela 09 (Perfil) está implementada de ponta a ponta — dados da
-empresa/acesso, troca de senha, edição do responsável, encerrar outras sessões
-e logout. As telas 05 (Revisão), 07 (Integrações) e 08 (Lotes OFX) dependem de
-domínios ainda não construídos (`match`, `outbox`, `ofx`, integração Bling). Os
-próximos passos — passo 4 (domínio de transações) em diante — estão em
+A implementação está em andamento na branch `dev`. Login, cadastro, perfil,
+onboarding inicial, domínio de transações, integração direta com o Cora e
+classificação por regras já possuem implementação. O Cora é um conector
+adicional e atualmente prioritário; ele não remove o Pluggy do escopo do v1.
+
+Ingestão agendada/idempotente, saúde da integração e fila básica de revisão já
+estão implementadas. O próximo marco é substituir o placeholder da Tela 04 por
+contagens, saúde das integrações e atividade recente. Depois entram leitura e
+match do Bling, OAuth, outbox, revisão completa e OFX. O estado detalhado está em
 [`SPECS/PROXIMOS-PASSOS.md`](./SPECS/PROXIMOS-PASSOS.md).
 
 ## Documentação
