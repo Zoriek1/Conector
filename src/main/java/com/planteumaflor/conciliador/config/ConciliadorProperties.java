@@ -65,7 +65,8 @@ public record ConciliadorProperties(
      * produção — ver risco documentado no plano de integração.
      */
     public record Cora(
-            String baseUrl,
+            String authBaseUrl,
+            String apiBaseUrl,
             String tokenPath,
             String extratoPath,
             String saldoPath

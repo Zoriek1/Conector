@@ -2,19 +2,130 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Início')}"></head>
 <body class="bg-light">
-<main class="container" style="max-width: 640px; margin-top: 6vh;">
-    <h1 class="h3">Você está autenticado ✅</h1>
-    <p class="mb-1">E-mail: <strong th:text="${email}">—</strong></p>
-    <p>Empresa (tenant): <code th:text="${empresaId}">—</code></p>
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
 
-    <form th:action="@{/sair}" method="post">
-        <button type="submit" class="btn btn-outline-danger btn-sm">Sair</button>
-    </form>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1">Início</h1>
+            <p class="text-muted mb-0">Situação operacional da conciliação.</p>
+        </div>
+        <form th:action="@{/inicio/sincronizar}" method="post">
+            <button type="submit" class="btn btn-primary">Sincronizar agora</button>
+        </form>
+    </div>
 
-    <p class="text-muted mt-4 small">
-        A tela de Início real (cards, integrações e atividade) permanece no
-        próximo marco da tela 04.
-    </p>
+    <div th:if="${sucesso}" class="alert alert-success" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
+
+    <section th:fragment="resumo">
+        <div class="row g-3 mb-4">
+            <div class="col-md">
+                <a th:href="@{/revisao}" class="card text-decoration-none text-dark h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Em revisão</div>
+                        <div class="display-6" th:text="${inicio.emRevisao}">0</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md">
+                <a th:href="@{/revisao(estado='FALHA')}" class="card text-decoration-none text-dark h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Falhas</div>
+                        <div class="display-6" th:text="${inicio.falhas}">0</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md">
+                <a th:href="@{/transacoes(estado='AGUARDANDO_ESCRITA_API')}" class="card text-decoration-none text-dark h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Aguardando API</div>
+                        <div class="display-6" th:text="${inicio.aguardandoApi}">0</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md">
+                <a th:href="@{/ofx/lotes}" class="card text-decoration-none text-dark h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Aguardando OFX</div>
+                        <div class="display-6" th:text="${inicio.aguardandoOfx}">0</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md">
+                <a th:href="@{/transacoes(estado='CONCILIADO')}" class="card text-decoration-none text-dark h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Conciliadas</div>
+                        <div class="display-6" th:text="${inicio.conciliadas}">0</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <section class="col-lg-5">
+                <div class="card h-100">
+                    <div class="card-header fw-semibold">Integrações</div>
+                    <div class="list-group list-group-flush">
+                        <div th:each="integracao : ${inicio.integracoes}" class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold" th:text="${integracao.nome}">Cora</div>
+                                    <small class="text-muted">
+                                        Última sync:
+                                        <span th:text="${integracao.ultimaSincronizacao ?: 'nunca'}">nunca</span>
+                                    </small>
+                                </div>
+                                <span class="badge"
+                                      th:classappend="${integracao.status == 'ATIVA'} ? ' text-bg-success' : (${integracao.status == 'REQUER_ATENCAO'} ? ' text-bg-warning' : ' text-bg-secondary')"
+                                      th:text="${integracao.status}">ATIVA</span>
+                            </div>
+                            <div th:if="${integracao.ultimaFalha}" class="small text-danger mt-2">
+                                Falha: <span th:text="${integracao.ultimaFalha}">COMUNICACAO</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a th:href="@{/integracoes}" class="btn btn-outline-secondary btn-sm">Gerenciar integrações</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-lg-7">
+                <div class="card h-100">
+                    <div class="card-header fw-semibold">Atividade recente</div>
+                    <div th:if="${#lists.isEmpty(inicio.atividades)}" class="card-body text-muted">
+                        Nenhuma transação importada ainda.
+                    </div>
+                    <div th:unless="${#lists.isEmpty(inicio.atividades)}" class="table-responsive">
+                        <table class="table table-sm mb-0 align-middle">
+                            <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Conta</th>
+                                <th>Descrição</th>
+                                <th class="text-end">Valor</th>
+                                <th>Estado</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="atividade : ${inicio.atividades}">
+                                <td th:text="${atividade.data}">2026-01-01</td>
+                                <td th:text="${atividade.conta}">Conta</td>
+                                <td th:text="${atividade.descricao ?: 'Sem descrição'}">Descrição</td>
+                                <td class="text-end" th:text="${atividade.valor}">0.00</td>
+                                <td th:text="${atividade.estado}">INGERIDO</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer small text-muted">
+                        Atualizado em <span th:text="${inicio.atualizadoEm}">agora</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
 </main>
 </body>
 </html>

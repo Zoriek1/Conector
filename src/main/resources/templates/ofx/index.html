@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Lotes OFX')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+
+<main class="container">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1">Lotes OFX</h1>
+            <p class="text-muted mb-0">Gere arquivos para upload manual no Bling.</p>
+        </div>
+        <a th:href="@{/inicio}" class="btn btn-outline-secondary btn-sm">Voltar ao início</a>
+    </div>
+
+    <div th:if="${sucesso}" class="alert alert-success" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
+
+    <section class="card mb-4">
+        <div class="card-header fw-semibold">Gerar novo lote</div>
+        <div class="card-body">
+            <form th:action="@{/ofx/lotes}" method="post" class="row g-3">
+                <div class="col-md-4">
+                    <label for="contaId" class="form-label">Conta</label>
+                    <select id="contaId" name="contaId" class="form-select" required>
+                        <option value="">Selecione</option>
+                        <option th:each="conta : ${contas}"
+                                th:value="${conta.id}"
+                                th:text="${conta.fonte + ' · ' + conta.nome}">Conta</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="inicio" class="form-label">Início</label>
+                    <input id="inicio" type="date" name="inicio" class="form-control" th:value="${inicioPadrao}" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="fim" class="form-label">Fim</label>
+                    <input id="fim" type="date" name="fim" class="form-control" th:value="${hoje}" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">Gerar</button>
+                </div>
+            </form>
+            <p class="small text-muted mt-3 mb-0">
+                Entram apenas transações em estado EM_LOTE_OFX e ainda sem lote associado.
+            </p>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header fw-semibold">Lotes gerados</div>
+        <div th:if="${#lists.isEmpty(lotes)}" class="card-body text-muted">
+            Nenhum lote OFX gerado ainda.
+        </div>
+        <div th:unless="${#lists.isEmpty(lotes)}" class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>Conta</th>
+                    <th>Período</th>
+                    <th>Status</th>
+                    <th>Itens</th>
+                    <th class="text-end">Créditos</th>
+                    <th class="text-end">Débitos</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="lote : ${lotes}">
+                    <td th:text="${lote.conta}">Conta</td>
+                    <td th:text="${lote.inicio + ' a ' + lote.fim}">período</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${lote.status == 'UPLOAD_CONFIRMADO'} ? ' text-bg-success' : ' text-bg-primary'"
+                              th:text="${lote.status}">DISPONIVEL</span>
+                    </td>
+                    <td th:text="${lote.quantidadeItens}">0</td>
+                    <td class="text-end" th:text="${lote.totalCreditos}">0.00</td>
+                    <td class="text-end" th:text="${lote.totalDebitos}">0.00</td>
+                    <td class="text-end">
+                        <a th:href="@{/ofx/lotes/{id}/arquivo(id=${lote.id})}" class="btn btn-outline-primary btn-sm">Baixar</a>
+                        <form th:if="${lote.status != 'UPLOAD_CONFIRMADO'}"
+                              th:action="@{/ofx/lotes/{id}/confirmar(id=${lote.id})}"
+                              method="post"
+                              class="d-inline">
+                            <button type="submit" class="btn btn-success btn-sm">Confirmar upload</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

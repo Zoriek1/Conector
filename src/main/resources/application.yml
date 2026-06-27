@@ -54,10 +54,11 @@ conciliador:
     base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
   cora:
     # Integração direta (OAuth client-credentials + mTLS); credenciais são por
-    # empresa, no banco. Paths PRECISAM ser confirmados contra o sandbox real.
-    base-url: ${CORA_BASE_URL:https://matls-clients.api.cora.com.br}
+    # empresa, no banco.
+    auth-base-url: ${CORA_AUTH_BASE_URL:${CORA_BASE_URL:https://matls-clients.api.cora.com.br}}
+    api-base-url: ${CORA_API_BASE_URL:https://api.cora.com.br}
     token-path: ${CORA_TOKEN_PATH:/token}
-    extrato-path: ${CORA_EXTRATO_PATH:/v2/externo/extrato}
-    saldo-path: ${CORA_SALDO_PATH:/v2/externo/saldo}
+    extrato-path: ${CORA_EXTRATO_PATH:/bank-statement/statement}
+    saldo-path: ${CORA_SALDO_PATH:/third-party/account/balance}
   cripto:
     chave: ${CRIPTO_KEY:}     # cifra credenciais Pluggy e refresh token Bling

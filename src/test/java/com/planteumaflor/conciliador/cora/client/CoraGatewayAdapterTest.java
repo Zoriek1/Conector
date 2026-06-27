@@ -62,7 +62,7 @@ class CoraGatewayAdapterTest {
                 new ConciliadorProperties.Bling(null, null, null, java.time.Duration.ofMinutes(2)),
                 new ConciliadorProperties.Pluggy(null),
                 new ConciliadorProperties.Cora(
-                        "https://example.invalid", "/token", "/extrato", "/saldo"),
+                        "https://auth.example.invalid", "https://api.example.invalid", "/token", "/extrato", "/saldo"),
                 new ConciliadorProperties.Cripto(null));
     }
 }

@@ -1,6 +1,7 @@
 package com.planteumaflor.conciliador.cora.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
@@ -31,22 +32,42 @@ final class CoraDto {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record SaldoResponse(
-            @JsonProperty("saldoDisponivel") BigDecimal saldoDisponivel) {
+            @JsonProperty("saldoDisponivel")
+            @JsonAlias({"available", "availableBalance", "balance", "amount"})
+            BigDecimal saldoDisponivel) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record ExtratoResponse(
-            @JsonProperty("lancamentos") List<Lancamento> lancamentos) {
+            @JsonProperty("lancamentos")
+            @JsonAlias({"results", "items", "data", "transactions"})
+            List<Lancamento> lancamentos,
+            @JsonProperty("hasMore") Boolean hasMore,
+            @JsonProperty("next") String next) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record Lancamento(
-            @JsonProperty("id") String id,
-            @JsonProperty("contaId") String contaId,
-            @JsonProperty("dataLancamento") LocalDate dataLancamento,
-            @JsonProperty("valor") BigDecimal valor,
-            @JsonProperty("descricao") String descricao,
-            @JsonProperty("documentoContraparte") String documentoContraparte,
-            @JsonProperty("endToEndId") String endToEndId) {
+            @JsonProperty("id")
+            @JsonAlias({"transactionId", "code"})
+            String id,
+            @JsonProperty("contaId")
+            @JsonAlias({"accountId", "account_id"})
+            String contaId,
+            @JsonProperty("dataLancamento")
+            @JsonAlias({"date", "created_at", "createdAt", "transactionDate"})
+            LocalDate dataLancamento,
+            @JsonProperty("valor")
+            @JsonAlias({"amount", "value"})
+            BigDecimal valor,
+            @JsonProperty("descricao")
+            @JsonAlias({"description", "memo"})
+            String descricao,
+            @JsonProperty("documentoContraparte")
+            @JsonAlias({"counterpartyDocument", "document", "taxId"})
+            String documentoContraparte,
+            @JsonProperty("endToEndId")
+            @JsonAlias({"e2eId", "end_to_end_id"})
+            String endToEndId) {
     }
 }

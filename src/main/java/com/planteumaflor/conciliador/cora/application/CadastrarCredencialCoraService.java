@@ -1,8 +1,11 @@
 package com.planteumaflor.conciliador.cora.application;
 
 import com.planteumaflor.conciliador.config.CriptoService;
+import com.planteumaflor.conciliador.conta.application.ContaBancariaService;
+import com.planteumaflor.conciliador.conta.domain.TipoContaBancaria;
 import com.planteumaflor.conciliador.cora.domain.IntegracaoCora;
 import com.planteumaflor.conciliador.cora.persistence.IntegracaoCoraJpaRepository;
+import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +23,19 @@ class CadastrarCredencialCoraService implements CadastrarCredencialCora {
     private final CoraGateway gateway;
     private final IntegracaoCoraJpaRepository integracoes;
     private final CriptoService cripto;
+    private final ContaBancariaService contas;
     private final Clock clock;
 
     CadastrarCredencialCoraService(
             CoraGateway gateway,
             IntegracaoCoraJpaRepository integracoes,
             CriptoService cripto,
+            ContaBancariaService contas,
             Clock clock) {
         this.gateway = gateway;
         this.integracoes = integracoes;
         this.cripto = cripto;
+        this.contas = contas;
         this.clock = clock;
     }
 
@@ -53,5 +59,15 @@ class CadastrarCredencialCoraService implements CadastrarCredencialCora {
                         empresaId, clientIdCifrado, certificadoCifrado, chavePrivadaCifrada, agora));
 
         integracoes.save(integracao);
+        contas.salvarOuAtualizar(
+                empresaId,
+                FonteIntegracao.CORA,
+                "cora",
+                "Cora",
+                null,
+                null,
+                null,
+                null,
+                TipoContaBancaria.CORRENTE);
     }
 }

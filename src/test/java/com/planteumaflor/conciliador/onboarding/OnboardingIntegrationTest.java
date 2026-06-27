@@ -1,6 +1,8 @@
 package com.planteumaflor.conciliador.onboarding;
 
 import com.planteumaflor.conciliador.TestcontainersConfiguration;
+import com.planteumaflor.conciliador.conta.application.ContaBancariaService;
+import com.planteumaflor.conciliador.conta.domain.TipoContaBancaria;
 import com.planteumaflor.conciliador.identidade.application.CadastrarEmpresaEUsuario;
 import com.planteumaflor.conciliador.identidade.application.CadastrarEmpresaEUsuario.CadastrarEmpresaCommand;
 import com.planteumaflor.conciliador.identidade.application.CadastrarEmpresaEUsuario.CadastroRealizado;
@@ -11,6 +13,7 @@ import com.planteumaflor.conciliador.onboarding.domain.EtapaOnboarding;
 import com.planteumaflor.conciliador.pluggy.application.ConectarPluggy;
 import com.planteumaflor.conciliador.pluggy.domain.StatusIntegracao;
 import com.planteumaflor.conciliador.pluggy.persistence.IntegracaoPluggyJpaRepository;
+import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +47,7 @@ class OnboardingIntegrationTest {
     @Autowired ConsultarOnboarding onboarding;
     @Autowired ConectarPluggy conectarPluggy;
     @Autowired IntegracaoPluggyJpaRepository integracoes;
+    @Autowired ContaBancariaService contas;
     @Autowired MockMvc mvc;
 
     private CadastroRealizado cadastrarEmpresa(String email) {
@@ -54,7 +58,7 @@ class OnboardingIntegrationTest {
     @Test
     void empresaNovaComecaComPluggyPendente() {
         UUID empresaId = cadastrarEmpresa("a@example.com").empresaId();
-        assertThat(onboarding.etapaAtual(empresaId)).isEqualTo(EtapaOnboarding.PLUGGY_PENDENTE);
+        assertThat(onboarding.etapaAtual(empresaId)).isEqualTo(EtapaOnboarding.INTEGRACOES_PENDENTES);
     }
 
     @Test
@@ -64,6 +68,8 @@ class OnboardingIntegrationTest {
         conectarPluggy.conectar(empresaId);
 
         assertThat(integracoes.existsByEmpresaIdAndStatus(empresaId, StatusIntegracao.ATIVA)).isTrue();
+        assertThat(onboarding.etapaAtual(empresaId)).isEqualTo(EtapaOnboarding.CONTAS_PENDENTES);
+        cadastrarConta(empresaId);
         assertThat(onboarding.etapaAtual(empresaId)).isEqualTo(EtapaOnboarding.CONCLUIDO);
     }
 
@@ -87,18 +93,30 @@ class OnboardingIntegrationTest {
 
         mvc.perform(post("/integracoes/pluggy/conectar").with(csrf()).with(user(principal)))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/onboarding"));
-
-        assertThat(onboarding.etapaAtual(r.empresaId())).isEqualTo(EtapaOnboarding.CONCLUIDO);
+                .andExpect(redirectedUrl("/integracoes"));
     }
 
     @Test
     void loginComPluggyAtivoVaiParaInicio() throws Exception {
         UUID empresaId = cadastrarEmpresa("e@example.com").empresaId();
         conectarPluggy.conectar(empresaId);
+        cadastrarConta(empresaId);
 
         mvc.perform(formLogin("/entrar").user("e@example.com").password("senha-supersegura"))
                 .andExpect(authenticated())
                 .andExpect(redirectedUrl("/inicio"));
+    }
+
+    private void cadastrarConta(UUID empresaId) {
+        contas.salvarOuAtualizar(
+                empresaId,
+                FonteIntegracao.PLUGGY,
+                "conta-test",
+                "Conta teste",
+                "001",
+                "0001",
+                "12345",
+                "0",
+                TipoContaBancaria.CORRENTE);
     }
 }
