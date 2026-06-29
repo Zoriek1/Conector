@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Integrações')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+
+<main class="container">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1">Integrações</h1>
+            <p class="text-muted mb-0">Credenciais por empresa, armazenadas cifradas no banco.</p>
+        </div>
+        <a th:href="@{/inicio}" class="btn btn-outline-secondary btn-sm">Voltar ao início</a>
+    </div>
+
+    <div th:if="${sucesso}" class="alert alert-success" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
+
+    <div class="row g-4">
+        <section class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Cora</span>
+                    <span class="badge"
+                          th:classappend="${cora.status == 'ATIVA'} ? ' text-bg-success' : (${cora.status == 'REQUER_ATENCAO'} ? ' text-bg-warning' : ' text-bg-secondary')"
+                          th:text="${cora.status}">NAO_CONECTADA</span>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        Integração direta por clientId, certificado e chave privada. O valor não volta para o HTML.
+                    </p>
+                    <form th:action="@{/integracoes/cora/credenciais}" method="post" class="vstack gap-3">
+                        <div>
+                            <label for="clientId" class="form-label">Client ID</label>
+                            <input type="text" id="clientId" name="clientId" class="form-control" required>
+                        </div>
+                        <div>
+                            <label for="certificadoPem" class="form-label">Certificado PEM</label>
+                            <textarea id="certificadoPem" name="certificadoPem" class="form-control" rows="5" required></textarea>
+                        </div>
+                        <div>
+                            <label for="chavePrivadaPem" class="form-label">Private key PEM</label>
+                            <textarea id="chavePrivadaPem" name="chavePrivadaPem" class="form-control" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Salvar Cora</button>
+                    </form>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        Última sync:
+                        <span th:text="${cora.ultimaSincronizacao ?: 'nunca'}">nunca</span>
+                    </small>
+                    <form th:action="@{/integracoes/cora/sincronizar}" method="post">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Sincronizar</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Pluggy</span>
+                    <span class="badge"
+                          th:classappend="${pluggy.status == 'ATIVA'} ? ' text-bg-success' : (${pluggy.status == 'REQUER_ATENCAO'} ? ' text-bg-warning' : ' text-bg-secondary')"
+                          th:text="${pluggy.status}">NAO_CONECTADA</span>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        Client ID e Client Secret do Meu Pluggy ficam cifrados. O navegador recebe só o connect token efêmero.
+                    </p>
+                    <form th:action="@{/integracoes/pluggy/credenciais}" method="post" class="vstack gap-3 mb-3">
+                        <div>
+                            <label for="pluggyClientId" class="form-label">Client ID</label>
+                            <input type="text" id="pluggyClientId" name="clientId" class="form-control" required>
+                        </div>
+                        <div>
+                            <label for="pluggyClientSecret" class="form-label">Client Secret</label>
+                            <input type="password" id="pluggyClientSecret" name="clientSecret" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Salvar Pluggy</button>
+                    </form>
+
+                    <form th:action="@{/integracoes/pluggy/conectar}" method="post" class="mb-3">
+                        <button type="submit" class="btn btn-outline-primary">Gerar connect token</button>
+                    </form>
+
+                    <div th:if="${pluggyConnectToken}" class="alert alert-info">
+                        <div class="fw-semibold mb-2">Connect token gerado</div>
+                        <code class="d-block text-break" th:text="${pluggyConnectToken}">token</code>
+                        <form id="pluggyRetorno" th:action="@{/integracoes/pluggy/retorno}" method="post" class="mt-3">
+                            <label for="pluggyItemId" class="form-label">Item ID retornado pelo Pluggy Connect</label>
+                            <input type="text" id="pluggyItemId" name="itemId" class="form-control" required>
+                            <button type="submit" class="btn btn-primary btn-sm mt-2">Confirmar item</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        Última sync:
+                        <span th:text="${pluggy.ultimaSincronizacao ?: 'nunca'}">nunca</span>
+                    </small>
+                    <form th:action="@{/integracoes/pluggy/sincronizar}" method="post">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Sincronizar</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="mt-4">
+        <div class="card">
+            <div class="card-header fw-semibold">Contas bancárias</div>
+            <div class="card-body">
+                <form th:action="@{/integracoes/contas}" method="post" class="row g-3 mb-4">
+                    <input type="hidden" name="fonte" value="CORA">
+                    <input type="hidden" name="idContaExterna" value="cora">
+                    <div class="col-md-3">
+                        <label for="contaNome" class="form-label">Nome</label>
+                        <input id="contaNome" name="nome" class="form-control" value="Cora" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="bancoCodigo" class="form-label">Banco</label>
+                        <input id="bancoCodigo" name="bancoCodigo" class="form-control" maxlength="10">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="agencia" class="form-label">Agência</label>
+                        <input id="agencia" name="agencia" class="form-control" maxlength="20">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="numero" class="form-label">Conta</label>
+                        <input id="numero" name="numero" class="form-control" maxlength="40">
+                    </div>
+                    <div class="col-md-1">
+                        <label for="digito" class="form-label">Dígito</label>
+                        <input id="digito" name="digito" class="form-control" maxlength="5">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <select id="tipo" name="tipo" class="form-select">
+                            <option th:each="tipo : ${tiposConta}" th:value="${tipo}" th:text="${tipo}"></option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-outline-success btn-sm">Salvar dados da conta Cora</button>
+                    </div>
+                </form>
+
+                <div th:if="${#lists.isEmpty(contas)}" class="alert alert-secondary">
+                    Nenhuma conta cadastrada ou descoberta ainda.
+                </div>
+
+                <div th:unless="${#lists.isEmpty(contas)}" class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                        <tr>
+                            <th>Fonte</th>
+                            <th>Nome</th>
+                            <th>Banco</th>
+                            <th>Agência</th>
+                            <th>Conta</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="conta : ${contas}">
+                            <td th:text="${conta.fonte}">CORA</td>
+                            <td th:text="${conta.nome}">Conta</td>
+                            <td th:text="${conta.bancoCodigo ?: '-'}">-</td>
+                            <td th:text="${conta.agencia ?: '-'}">-</td>
+                            <td th:text="${conta.numero ?: conta.idContaExterna}">-</td>
+                            <td th:text="${conta.tipo}">CORRENTE</td>
+                            <td>
+                                <span th:if="${conta.ativa}" class="badge text-bg-success">ativa</span>
+                                <span th:unless="${conta.ativa}" class="badge text-bg-secondary">pausada</span>
+                            </td>
+                            <td class="text-end">
+                                <form th:if="${conta.ativa}" th:action="@{/integracoes/contas/{id}/pausar(id=${conta.id})}" method="post">
+                                    <button class="btn btn-outline-secondary btn-sm" type="submit">Pausar</button>
+                                </form>
+                                <form th:unless="${conta.ativa}" th:action="@{/integracoes/contas/{id}/ativar(id=${conta.id})}" method="post">
+                                    <button class="btn btn-outline-success btn-sm" type="submit">Ativar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script th:if="${pluggyConnectToken}" src="https://cdn.pluggy.ai/pluggy-connect/v2.8.2/pluggy-connect.js"></script>
+<script th:if="${pluggyConnectToken}" th:inline="javascript">
+    const pluggyToken = /*[[${pluggyConnectToken}]]*/ "";
+    if (window.PluggyConnect && pluggyToken) {
+        const pluggyConnect = new PluggyConnect({
+            connectToken: pluggyToken,
+            onSuccess: function (itemData) {
+                const itemId = itemData?.item?.id || itemData?.itemId || itemData?.id;
+                if (itemId) {
+                    document.getElementById("pluggyItemId").value = itemId;
+                    document.getElementById("pluggyRetorno").submit();
+                }
+            }
+        });
+        pluggyConnect.init();
+    }
+</script>
+</body>
+</html>

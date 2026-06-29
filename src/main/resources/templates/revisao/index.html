@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Revisão')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Fila de revisão</h1>
+            <p class="text-muted mb-0">Lançamentos que precisam de decisão humana.</p>
+        </div>
+        <span class="badge text-bg-warning"
+              th:text="${itens.totalElements} + ' item(ns)'">0 itens</span>
+    </div>
+
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${estado.name() == 'EM_REVISAO'} ? 'active'"
+               th:href="@{/revisao(estado='EM_REVISAO')}">Em revisão</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${estado.name() == 'FALHA'} ? 'active'"
+               th:href="@{/revisao(estado='FALHA')}">Falhas</a>
+        </li>
+    </ul>
+
+    <!-- Região de alertas de erro (404/409/422) injetada pelo HTMX. -->
+    <div id="revisao-erro" aria-live="polite"></div>
+
+    <div th:replace="~{revisao/fragments :: fila}"></div>
+</main>
+
+<script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+<script>
+    // htmx não troca respostas 4xx por padrão; exibimos o alerta de erro
+    // devolvido pelo servidor e recarregamos a fila para refletir o estado atual.
+    document.body.addEventListener('htmx:responseError', function (event) {
+        document.getElementById('revisao-erro').innerHTML = event.detail.xhr.responseText;
+    });
+    document.body.addEventListener('htmx:beforeRequest', function () {
+        document.getElementById('revisao-erro').innerHTML = '';
+    });
+</script>
+</body>
+</html>

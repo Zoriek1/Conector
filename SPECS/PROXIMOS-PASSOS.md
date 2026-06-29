@@ -2,46 +2,59 @@
 
 ## Resumo
 
-A branch `dev` está limpa e contém os passos 1–3. A prioridade é estabilizar login/cadastro e depois iniciar o passo 4: o domínio de transações.
+A branch `dev` já contém: identidade completa (login, cadastro, perfil, alterar
+senha), onboarding com Cora e Pluggy reais, credenciais por empresa cifradas
+(`CriptoService`), contas bancárias, ingestão e classificação de transações,
+fila de revisão, tela de Integrações, dashboard Início, lotes OFX e templates
+para todas as telas. Migrações V1–V10 aplicadas.
 
-## Ordem recomendada
+### Decisão de conectores
+
+- **Cora direto** é o primeiro conector bancário operacional.
+- **Pluggy** tem adapter real (`PluggyGatewayAdapter`); credenciais por empresa
+  criptografadas no banco (V9).
+- Toda transação mantém `fonte` e unicidade por
+  `(empresa_id, fonte, id_transacao_externa)`.
+
+## O que ainda falta
 
 1. **Restabelecer a validação do build**
-   - Versionar `mvnw` como executável.
-   - Garantir Java 21/JAVA_HOME e executar `./mvnw test`.
-   - Neste ambiente, os testes não puderam rodar por ausência do Java.
+   - Garantir Java 21, Docker disponível para Testcontainers e executar
+     `mvnw.cmd test` no Windows.
+   - Testes unitários passam sem infraestrutura; testes de integração dependem
+     do Docker/Testcontainers.
 
-2. **Corrigir login e cadastro**
-   - Login: saved request seguro, redirecionamento de usuário autenticado e sessão expirada.
-   - Cadastro: auto-login para `/onboarding`, nunca reapresentar senhas e retornar HTTP 422 em erros.
-   - Adicionar testes MockMvc desses fluxos.
-   - Referência: [pendências das telas](./implementação/README.md).
+2. **Implementar o núcleo Bling**
+   - OAuth/refresh por empresa → `BlingToken` persistido → `BlingClient` →
+     leitura de contas a receber/pagar → estratégias de match →
+     outbox e escrita idempotente.
+   - Ver [Backend §16](./Backend.md) passos 7–9.
 
-3. **Implementar o passo 4 — Transação**
-   - Criar `V3__transacao.sql`, sempre com `empresa_id`.
-   - Implementar `Transacao`, `EstadoTransacao`, `ClasseTransacao`, `Direcao` e `Confianca`.
-   - Garantir valor positivo com `BigDecimal`, unicidade por empresa, `@Version` e transições de estado protegidas.
-   - Criar repositório com consultas obrigatoriamente escopadas pelo tenant.
-   - Referência: [contrato do backend](./Backend.md).
+3. **Completar revisão HTMX e OFX**
+   - Comandos de revisão (`aprovar`, `classificar`, `match`, `ofx`, `retry`)
+     com fragmentos HTMX e proteção de versão (409).
+   - Confirmação humana de upload OFX → estado `CONCILIADO`.
 
-4. **Completar a base Pluggy antes do ingest**
-   - Manter o fake para testes.
-   - Em nova migration posterior à V3, adicionar credenciais cifradas e contas bancárias sem alterar a V2 já aplicada.
-   - Implementar adapter real e evolução das etapas do onboarding.
+4. **Finalizar onboarding**
+   - Ampliar `EtapaOnboarding` para as 7 etapas do spec.
+   - Fluxo OAuth Bling (`/integracoes/bling/conectar` + retorno).
+   - Polling HTMX de primeira sincronização.
+   - Testes: callback state inválido, idempotência, isolamento.
 
-5. **Continuar o roadmap**
-   - Ingest idempotente → classificação/fila básica → leitura e match Bling → OAuth → outbox → revisão HTMX → OFX → métricas/auditoria.
-   - A tela Início deixa de ser placeholder depois que `Transacao` oferecer as contagens.
-   - Ordem oficial: [Backend §16](./Backend.md).
+5. **Métricas, auditoria e CI**
+   - Tabela ou eventos de auditoria de classificação/match.
+   - Métricas Actuator (fila por estado, outbox, latência por integração).
+   - Build image Docker e pipeline CI.
 
-## Testes de aceite imediatos
+## Testes de aceite pendentes
 
 - Suíte completa verde com PostgreSQL/Testcontainers.
-- Login preserva somente redirects internos.
-- Cadastro termina autenticado e nunca devolve a senha no HTML.
-- Transações de empresas diferentes permanecem isoladas.
-- Duplicidade `(empresa_id, pluggy_transaction_id)` é rejeitada.
+- Sincronização repetida ou concorrente não duplica transações (Cora e Pluggy).
+- Falha de conector atualiza saúde sem expor credenciais.
+- Transações, fila e OFX permanecem isolados entre empresas.
 - Transições inválidas e alterações após `CONCILIADO` falham.
+- Revisão via HTMX preserva CSRF e trata conflito de versão (409).
+- OFX marcado `CONCILIADO` somente após confirmação humana.
 
 ## Premissas
 

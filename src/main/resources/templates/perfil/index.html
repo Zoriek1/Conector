@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Perfil')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
+
+<main class="container" style="max-width: 720px;">
+    <h1 class="h3 mb-4">Perfil</h1>
+
+    <!-- Confirmações de sucesso (PRG via query param) -->
+    <div th:if="${param.dados}" class="alert alert-success" role="alert">
+        Dados atualizados.
+    </div>
+    <div th:if="${param.senha}" class="alert alert-success" role="alert">
+        Senha alterada.
+    </div>
+    <div th:if="${param.sessoes}" class="alert alert-success" role="alert">
+        As outras sessões foram encerradas.
+    </div>
+
+    <!-- Empresa (somente leitura no v1) -->
+    <section class="card card-body shadow-sm mb-4">
+        <h2 class="h5">Empresa</h2>
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted fw-normal">Nome</dt>
+            <dd class="col-sm-8" th:text="${perfil.nomeEmpresa}">—</dd>
+            <dt class="col-sm-4 text-muted fw-normal">CNPJ</dt>
+            <dd class="col-sm-8" th:text="${perfil.cnpjMascarado}">—</dd>
+        </dl>
+        <p class="form-text mb-0">Nome e CNPJ da empresa são somente leitura nesta versão.</p>
+    </section>
+
+    <!-- Acesso (nome do responsável editável; e-mail somente leitura) -->
+    <section class="card card-body shadow-sm mb-4">
+        <h2 class="h5">Acesso</h2>
+        <form th:action="@{/perfil/dados}" th:object="${formDados}" method="post">
+            <div class="mb-3">
+                <label for="nomeResponsavel" class="form-label">Nome do responsável</label>
+                <input type="text" id="nomeResponsavel" th:field="*{nomeResponsavel}" class="form-control">
+                <div class="text-danger small" th:if="${#fields.hasErrors('nomeResponsavel')}"
+                     th:errors="*{nomeResponsavel}">erro</div>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" id="email" class="form-control" th:value="${perfil.email}"
+                       autocomplete="username" readonly disabled>
+            </div>
+            <p class="form-text" th:if="${perfil.senhaAlteradaEm != null}">
+                Senha alterada em: <span th:text="${perfil.senhaAlteradaEm}">—</span>
+            </p>
+            <p class="form-text" th:if="${acessoAtualEm != null}">
+                Acesso atual iniciado em: <span th:text="${acessoAtualEm}">—</span>
+            </p>
+            <button type="submit" class="btn btn-primary">Salvar dados</button>
+        </form>
+    </section>
+
+    <!-- Troca de senha (campos nunca reapresentados) -->
+    <section class="card card-body shadow-sm mb-4">
+        <h2 class="h5">Alterar senha</h2>
+        <div th:if="${erroSenha}" class="alert alert-danger" role="alert" th:text="${erroSenha}">erro</div>
+        <form th:action="@{/perfil/senha}" method="post">
+            <div class="mb-3">
+                <label for="senhaAtual" class="form-label">Senha atual</label>
+                <input type="password" id="senhaAtual" name="senhaAtual" class="form-control"
+                       autocomplete="current-password" required>
+            </div>
+            <div class="mb-3">
+                <label for="novaSenha" class="form-label">Nova senha</label>
+                <input type="password" id="novaSenha" name="novaSenha" class="form-control"
+                       autocomplete="new-password" required>
+                <div class="form-text">Ao menos 8 caracteres.</div>
+            </div>
+            <div class="mb-3">
+                <label for="confirmacao" class="form-label">Confirmar nova senha</label>
+                <input type="password" id="confirmacao" name="confirmacao" class="form-control"
+                       autocomplete="new-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Alterar senha</button>
+        </form>
+    </section>
+
+    <!-- Sessões e logout -->
+    <section class="card card-body shadow-sm mb-5">
+        <h2 class="h5">Sessões</h2>
+        <p class="text-muted small">
+            Encerrar as outras sessões mantém esta ativa e desconecta os demais
+            dispositivos.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <form th:action="@{/perfil/sessoes/encerrar-outras}" method="post" class="m-0">
+                <button type="submit" class="btn btn-outline-secondary">Encerrar outras sessões</button>
+            </form>
+            <form th:action="@{/sair}" method="post" class="m-0">
+                <button type="submit" class="btn btn-outline-danger">Sair</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

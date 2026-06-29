@@ -910,18 +910,18 @@ Não chamar Pluggy nem Bling reais na suíte automatizada.
 
 ## 16. Ordem de implementação
 
-1. gerar projeto e configurar build, profiles e Testcontainers;
-2. criar empresa, usuário, form login e testes de isolamento;
-3. criar integração Pluggy e onboarding pós-cadastro;
-4. criar `V3__transacao.sql` e o agregado `Transacao` com tenant obrigatório;
-5. implementar normalizer e ingest idempotente por empresa;
-6. implementar regras de classificação e fila básica;
-7. implementar leitura Bling e estratégias de match;
-8. criar token OAuth por empresa e refresh;
-9. criar outbox e escrita idempotente no Bling;
-10. criar revisão completa com HTMX;
-11. criar lotes e arquivos OFX;
-12. adicionar métricas, auditoria, build image e Compose.
+1. ✅ gerar projeto e configurar build, profiles e Testcontainers;
+2. ✅ criar empresa, usuário, form login e testes de isolamento;
+3. ✅ criar integração Pluggy (adapter real) e onboarding pós-cadastro;
+4. ✅ criar `V3__transacao.sql` e o agregado `Transacao` com tenant obrigatório;
+5. ✅ implementar ingest idempotente por empresa (Cora + Pluggy, V4–V9);
+6. ✅ implementar regras de classificação, fila de revisão e dashboard Início;
+7. ⬜ implementar leitura Bling e estratégias de match;
+8. ⬜ criar token OAuth Bling por empresa e refresh;
+9. ⬜ criar outbox e escrita idempotente no Bling;
+10. ⬜ criar revisão completa com HTMX (comandos + fragmentos + proteção 409);
+11. ✅ criar lotes e arquivos OFX (básico; confirmação `CONCILIADO` pendente);
+12. ⬜ adicionar métricas, auditoria, build image e Compose.
 
 Cada etapa deve deixar migrations, testes e observabilidade coerentes; não adiar
 idempotência ou segurança para uma etapa final.

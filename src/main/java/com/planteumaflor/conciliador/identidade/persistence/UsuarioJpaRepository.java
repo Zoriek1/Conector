@@ -17,4 +17,8 @@ public interface UsuarioJpaRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    /** Carrega o usuário escopado pelo tenant (tela 09 §6): id de outra empresa
+     * não retorna nada, equivalendo a 404 na camada web. */
+    Optional<Usuario> findByIdAndEmpresaId(UUID id, UUID empresaId);
 }

@@ -7,6 +7,7 @@ import com.planteumaflor.conciliador.transacao.domain.ClasseTransacao;
 import com.planteumaflor.conciliador.transacao.domain.Confianca;
 import com.planteumaflor.conciliador.transacao.domain.DadosTransacao;
 import com.planteumaflor.conciliador.transacao.domain.Direcao;
+import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import com.planteumaflor.conciliador.transacao.domain.Transacao;
 import com.planteumaflor.conciliador.transacao.domain.TransacaoRepository;
 import jakarta.persistence.EntityManager;
@@ -62,8 +63,8 @@ class TransacaoIntegrationTest {
 
         assertThat(transacoes.buscarPorId(empresaA, salva.getId())).isPresent();
         assertThat(transacoes.buscarPorId(empresaB, salva.getId())).isEmpty();
-        assertThat(transacoes.existePorOrigem(empresaA, "pluggy-1")).isTrue();
-        assertThat(transacoes.existePorOrigem(empresaB, "pluggy-1")).isFalse();
+        assertThat(transacoes.existePorOrigem(empresaA, FonteIntegracao.PLUGGY, "pluggy-1")).isTrue();
+        assertThat(transacoes.existePorOrigem(empresaB, FonteIntegracao.PLUGGY, "pluggy-1")).isFalse();
     }
 
     @Test
@@ -76,6 +77,21 @@ class TransacaoIntegrationTest {
 
         assertThatThrownBy(() -> salvar(novaTransacao(empresaA, "mesmo-id", "30.00")))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void insertIdempotenteIgnoraMesmaOrigemSemFalhar() {
+        UUID empresa = cadastrarEmpresa("idempotente@example.com");
+
+        boolean primeira = tx.execute(status ->
+                transacoes.inserirSeAusente(novaTransacao(empresa, "origem-1", "10.00")));
+        boolean repetida = tx.execute(status ->
+                transacoes.inserirSeAusente(novaTransacao(empresa, "origem-1", "99.00")));
+
+        assertThat(primeira).isTrue();
+        assertThat(repetida).isFalse();
+        assertThat(transacoes.listarPorEmpresa(empresa, org.springframework.data.domain.Pageable.unpaged())
+                .getTotalElements()).isEqualTo(1);
     }
 
     @Test
@@ -122,11 +138,11 @@ class TransacaoIntegrationTest {
 
         assertThatThrownBy(() -> jdbc.update("""
                 INSERT INTO transacao (
-                    empresa_id, pluggy_transaction_id, pluggy_account_id, conta_local,
+                    empresa_id, fonte, id_transacao_externa, id_conta_externa, conta_local,
                     data, valor_liquido, direcao, classe, confianca, estado
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                empresa, "invalida", "conta", "cora", LocalDate.now(),
+                empresa, "PLUGGY", "invalida", "conta", "cora", LocalDate.now(),
                 BigDecimal.ZERO, "CREDITO", "INDEFINIDO", new BigDecimal("1.100"), "INGERIDO"))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
@@ -143,6 +159,7 @@ class TransacaoIntegrationTest {
     private Transacao novaTransacao(UUID empresaId, String idPluggy, String valor) {
         return Transacao.ingerida(new DadosTransacao(
                 empresaId,
+                FonteIntegracao.PLUGGY,
                 idPluggy,
                 "conta-" + idPluggy,
                 "cora",

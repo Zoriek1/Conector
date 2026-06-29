@@ -38,6 +38,8 @@ conciliador:
   ingest:
     cron: ${INGEST_CRON:0 0 4 * * *}
     dias-retroativos: ${INGEST_LOOKBACK_DAYS:7}
+    max-tentativas: ${INGEST_MAX_ATTEMPTS:3}
+    atraso-retry: ${INGEST_RETRY_DELAY:PT2S}
   classificacao:
     confianca-automatica: ${AUTO_CONFIDENCE:0.900}
     tolerancia-taxa: ${FEE_TOLERANCE:0.100}
@@ -50,5 +52,13 @@ conciliador:
   pluggy:
     # Sem api-key global: credenciais do Meu Pluggy são por empresa, no banco.
     base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
+  cora:
+    # Integração direta (OAuth client-credentials + mTLS); credenciais são por
+    # empresa, no banco.
+    auth-base-url: ${CORA_AUTH_BASE_URL:${CORA_BASE_URL:https://matls-clients.api.cora.com.br}}
+    api-base-url: ${CORA_API_BASE_URL:https://api.cora.com.br}
+    token-path: ${CORA_TOKEN_PATH:/token}
+    extrato-path: ${CORA_EXTRATO_PATH:/bank-statement/statement}
+    saldo-path: ${CORA_SALDO_PATH:/third-party/account/balance}
   cripto:
     chave: ${CRIPTO_KEY:}     # cifra credenciais Pluggy e refresh token Bling

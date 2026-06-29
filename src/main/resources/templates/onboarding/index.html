@@ -17,8 +17,8 @@
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-start">
             <div class="ms-2 me-auto">
-                <div class="fw-semibold">Conectar o Meu Pluggy</div>
-                Conecte seus bancos para importar as transações.
+                <div class="fw-semibold">Conectar Cora ou Pluggy</div>
+                Configure pelo menos um conector na tela Integrações.
             </div>
             <span th:if="${etapa.name() == 'CONCLUIDO'}" class="badge bg-success rounded-pill">✓</span>
             <span th:unless="${etapa.name() == 'CONCLUIDO'}"
@@ -26,19 +26,16 @@
         </li>
     </ol>
 
-    <!-- Pluggy pendente: botão de conectar (fake) -->
-    <div th:if="${etapa.name() == 'PLUGGY_PENDENTE'}">
-        <form th:action="@{/integracoes/pluggy/conectar}" method="post">
-            <button type="submit" class="btn btn-success">Conectar bancos (simulado)</button>
-        </form>
+    <div th:if="${etapa.name() != 'CONCLUIDO'}">
+        <a th:href="@{/integracoes}" class="btn btn-success">Abrir integrações</a>
         <p class="text-muted small mt-2">
-            No passo 3 isto usa um Pluggy <em>fake</em>. O widget real do Meu Pluggy entra depois.
+            Cora e Pluggy são configurados por empresa e ficam cifrados no banco.
         </p>
     </div>
 
     <!-- Concluído -->
     <div th:if="${etapa.name() == 'CONCLUIDO'}">
-        <div class="alert alert-success">Pluggy conectado! Tudo pronto.</div>
+        <div class="alert alert-success">Integrações prontas. Tudo pronto.</div>
         <a th:href="@{/inicio}" class="btn btn-primary">Ir para o início</a>
     </div>
 </main>
