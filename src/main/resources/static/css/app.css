@@ -1,8 +1,16 @@
+/* ==========================================================================
+   Conciliador — estilos de aplicação sobre o Bootstrap.
+   Cores, espaçamentos, raios e sombras vêm de tokens.css.
+   ========================================================================== */
+
 body {
     font-family: var(--app-font);
     color: var(--app-text);
     background: var(--app-bg);
-    letter-spacing: 0;
+    font-size: var(--fs-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
 .app-body,
@@ -15,7 +23,7 @@ main.container {
     width: 100%;
     max-width: min(1280px, calc(100vw - 32px));
     margin: 0 auto;
-    padding: 28px 24px 56px;
+    padding: var(--space-6) var(--space-5) var(--space-7);
 }
 
 .app-main-wide {
@@ -24,70 +32,84 @@ main.container {
     padding-right: clamp(16px, 2vw, 40px);
 }
 
+/* ---- Navegação ---------------------------------------------------------- */
 .app-nav {
     position: sticky;
     top: 0;
     z-index: 20;
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.88);
     border-bottom: 1px solid var(--app-border);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
 }
 
 .app-nav-inner {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: var(--space-5);
     min-height: 64px;
-    padding: 0 24px;
+    padding: 0 var(--space-5);
 }
 
 .app-brand {
     color: var(--app-brand-strong);
-    font-weight: 750;
+    font-weight: 800;
+    font-size: var(--fs-lg);
+    letter-spacing: -0.01em;
     text-decoration: none;
 }
 
 .app-nav-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--space-1);
     flex: 1;
 }
 
 .app-nav-links a {
     color: var(--app-muted);
     text-decoration: none;
-    padding: 8px 10px;
-    border-radius: 6px;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--app-radius-sm);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    transition: color var(--app-transition), background var(--app-transition);
 }
 
 .app-nav-links a:hover,
-.app-nav-links a:focus {
+.app-nav-links a:focus-visible {
     color: var(--app-brand-strong);
-    background: var(--app-green-soft);
+    background: var(--app-brand-soft);
+}
+
+.app-nav-links a.active {
+    color: var(--app-brand-strong);
+    background: var(--app-brand-soft);
+    box-shadow: inset 0 -2px 0 var(--app-brand);
 }
 
 .app-user {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
     color: var(--app-muted);
-    font-size: 0.875rem;
+    font-size: var(--fs-sm);
 }
 
+/* ---- Cabeçalho de página ------------------------------------------------ */
 .page-header {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
+    gap: var(--space-4);
     align-items: flex-start;
-    margin-bottom: 18px;
+    margin-bottom: var(--space-5);
 }
 
 .page-header h1 {
-    margin: 0 0 4px;
-    font-size: 1.65rem;
-    line-height: 1.2;
-    font-weight: 760;
+    margin: 0 0 var(--space-1);
+    font-size: var(--fs-2xl);
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.015em;
 }
 
 .page-header p {
@@ -95,153 +117,31 @@ main.container {
     color: var(--app-muted);
 }
 
+.page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* ---- Pills e badges ----------------------------------------------------- */
 .metric-pill,
 .status-pill,
 .direction-badge {
     display: inline-flex;
     align-items: center;
-    min-height: 28px;
-    padding: 4px 10px;
+    min-height: 26px;
+    padding: var(--space-1) var(--space-3);
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
+    line-height: 1;
     white-space: nowrap;
 }
 
 .metric-pill {
     color: var(--app-amber);
     background: var(--app-amber-soft);
-}
-
-.filter-panel,
-.batch-bar,
-.data-surface,
-.empty-state,
-.card {
-    background: var(--app-surface);
-    border: 1px solid var(--app-border);
-    border-radius: var(--app-radius);
-    box-shadow: var(--app-shadow);
-}
-
-.filter-panel {
-    padding: 18px;
-    margin-bottom: 14px;
-}
-
-.batch-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-}
-
-.batch-summary {
-    flex: 1 1 230px;
-    min-width: 230px;
-}
-
-.batch-selectors {
-    display: flex;
-    flex: 0 1 auto;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.batch-category {
-    flex: 0 1 280px;
-    min-width: 220px;
-}
-
-.batch-justification {
-    flex: 1 1 240px;
-    min-width: 200px;
-}
-
-.batch-submit {
-    white-space: nowrap;
-}
-
-.batch-bar span {
-    display: block;
-    color: var(--app-muted);
-    font-size: 0.85rem;
-}
-
-.data-surface {
-    overflow: hidden;
-}
-
-.app-table {
-    font-size: 0.92rem;
-    min-width: 1240px;
-}
-
-.app-table thead th {
-    background: var(--app-surface-muted);
-    color: var(--app-muted);
-    font-size: 0.76rem;
-    font-weight: 750;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--app-border);
-}
-
-.app-table tbody td {
-    border-color: var(--app-border);
-    vertical-align: middle;
-}
-
-.selection-col {
-    width: 76px;
-    text-align: center;
-}
-
-.select-page-control {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin: 0;
-    cursor: pointer;
-}
-
-.select-page-control span {
-    font-size: 0.72rem;
-}
-
-.review-row {
-    cursor: pointer;
-}
-
-.review-row:hover td {
-    background: var(--app-surface-muted);
-}
-
-.review-row.is-selected td {
-    background: var(--app-selection);
-}
-
-.review-select-checkbox {
-    cursor: pointer;
-}
-
-.actions-col {
-    width: 320px;
-}
-
-.description-cell {
-    max-width: 320px;
-}
-
-.category-name {
-    font-weight: 700;
-}
-
-.money {
-    font-variant-numeric: tabular-nums;
-    font-weight: 750;
 }
 
 .direction-in {
@@ -274,7 +174,175 @@ main.container {
     background: var(--app-surface-muted);
 }
 
-/* ---- Integrações ---- */
+.transfer-badge {
+    margin-left: var(--space-2);
+}
+
+/* ---- Superfícies --------------------------------------------------------- */
+.filter-panel,
+.batch-bar,
+.data-surface,
+.empty-state,
+.card {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow-sm);
+}
+
+.card {
+    overflow: hidden;
+    transition: box-shadow var(--app-transition), border-color var(--app-transition);
+}
+
+.card:hover {
+    box-shadow: var(--app-shadow);
+}
+
+.card-header,
+.card-footer {
+    background: var(--app-surface-muted);
+    border-color: var(--app-border);
+}
+
+.filter-panel {
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+}
+
+/* ---- Barra de ações em lote --------------------------------------------- */
+.batch-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-3);
+}
+
+.batch-summary {
+    flex: 1 1 230px;
+    min-width: 230px;
+}
+
+.batch-selectors {
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.batch-category {
+    flex: 0 1 280px;
+    min-width: 220px;
+}
+
+.batch-justification {
+    flex: 1 1 240px;
+    min-width: 200px;
+}
+
+.batch-submit {
+    white-space: nowrap;
+}
+
+.batch-bar span {
+    display: block;
+    color: var(--app-muted);
+    font-size: var(--fs-sm);
+}
+
+/* ---- Tabelas de dados ---------------------------------------------------- */
+.data-surface {
+    overflow: hidden;
+}
+
+.app-table {
+    font-size: var(--fs-sm);
+    min-width: 1240px;
+    margin-bottom: 0;
+}
+
+.app-table thead th {
+    background: var(--app-surface-muted);
+    color: var(--app-muted);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--app-border-strong);
+    white-space: nowrap;
+}
+
+.app-table tbody td {
+    padding: var(--space-3) var(--space-4);
+    border-color: var(--app-border);
+    vertical-align: middle;
+}
+
+.app-table tbody tr {
+    transition: background var(--app-transition);
+}
+
+.app-table tbody tr:hover td {
+    background: var(--app-surface-muted);
+}
+
+.transfer-row td {
+    background: var(--app-surface-muted);
+    color: var(--app-muted);
+}
+
+.selection-col {
+    width: 76px;
+    text-align: center;
+}
+
+.select-page-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    cursor: pointer;
+}
+
+.select-page-control span {
+    font-size: var(--fs-xs);
+}
+
+.review-row {
+    cursor: pointer;
+}
+
+.review-row.is-selected td {
+    background: var(--app-selection);
+    box-shadow: inset 3px 0 0 var(--app-brand);
+}
+
+.review-select-checkbox {
+    cursor: pointer;
+}
+
+.actions-col {
+    width: 320px;
+}
+
+.description-cell {
+    max-width: 320px;
+}
+
+.category-name {
+    font-weight: 700;
+}
+
+.money {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+/* ---- Integrações --------------------------------------------------------- */
 .integration-card .card-body {
     display: flex;
     flex-direction: column;
@@ -283,8 +351,8 @@ main.container {
 .integration-connected {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: var(--space-3);
+    padding: var(--space-4);
     border: 1px solid var(--app-border);
     border-radius: var(--app-radius);
     background: var(--app-green-soft);
@@ -302,11 +370,11 @@ main.container {
 .cred-update > summary {
     cursor: pointer;
     color: var(--app-brand-strong);
-    font-size: 0.875rem;
+    font-size: var(--fs-sm);
     font-weight: 650;
     list-style: none;
     user-select: none;
-    padding: 4px 0;
+    padding: var(--space-1) 0;
 }
 
 .cred-update > summary::-webkit-details-marker {
@@ -327,41 +395,74 @@ main.container {
 }
 
 .cred-update > *:not(summary) {
-    margin-top: 14px;
+    margin-top: var(--space-4);
 }
 
 .connect-step {
     border-top: 1px dashed var(--app-border);
 }
 
+/* ---- Ações de linha ------------------------------------------------------ */
 .row-actions {
     display: grid;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .inline-classifier {
     display: grid;
     grid-template-columns: minmax(140px, 1fr) auto;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
 .action-buttons {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
+/* ---- Paginação ----------------------------------------------------------- */
 .pagination-wrap {
     display: flex;
     justify-content: flex-end;
-    margin-top: 16px;
+    margin-top: var(--space-4);
 }
 
+.pagination {
+    gap: var(--space-1);
+}
+
+.page-link {
+    color: var(--app-brand-strong);
+    border-color: var(--app-border);
+    border-radius: var(--app-radius-sm) !important;
+}
+
+.page-link:hover {
+    background: var(--app-brand-soft);
+    color: var(--app-brand-strong);
+    border-color: var(--app-border-strong);
+}
+
+.page-item.active .page-link {
+    background: var(--app-brand);
+    border-color: var(--app-brand);
+}
+
+/* ---- Estado vazio -------------------------------------------------------- */
 .empty-state {
     color: var(--app-muted);
-    padding: 28px;
+    padding: var(--space-7) var(--space-5);
     text-align: center;
+    font-size: var(--fs-base);
+}
+
+/* ---- Botões e formulários ----------------------------------------------- */
+.btn {
+    border-radius: var(--app-radius-sm);
+    font-weight: 600;
+    transition: background var(--app-transition), border-color var(--app-transition),
+        color var(--app-transition), box-shadow var(--app-transition);
 }
 
 .btn-primary,
@@ -371,54 +472,79 @@ main.container {
 }
 
 .btn-primary:hover,
-.btn-success:hover {
+.btn-success:hover,
+.btn-primary:focus-visible,
+.btn-success:focus-visible {
     background: var(--app-brand-strong);
     border-color: var(--app-brand-strong);
 }
 
+.btn-outline-secondary.active {
+    background: var(--app-brand-soft);
+    border-color: var(--app-border-strong);
+    color: var(--app-brand-strong);
+}
+
 .form-control,
 .form-select,
-.btn,
-.page-link,
 .alert {
-    border-radius: 6px;
+    border-radius: var(--app-radius-sm);
+}
+
+.form-control,
+.form-select {
+    border-color: var(--app-border-strong);
 }
 
 .form-control:focus,
 .form-select:focus {
     border-color: var(--app-brand);
-    box-shadow: 0 0 0 0.2rem rgba(36, 107, 69, 0.16);
+    box-shadow: var(--app-focus-ring);
 }
 
-.card {
-    overflow: hidden;
+/* Foco visível consistente para navegação por teclado. */
+a:focus-visible,
+.btn:focus-visible,
+.page-link:focus-visible,
+.form-check-input:focus-visible {
+    outline: none;
+    box-shadow: var(--app-focus-ring);
 }
 
-.card-header,
-.card-footer {
-    background: var(--app-surface-muted);
-    border-color: var(--app-border);
-}
-
+/* ---- Responsivo ---------------------------------------------------------- */
 @media (max-width: 900px) {
-    .app-nav-inner,
-    .app-user,
-    .page-header {
-        align-items: stretch;
-        flex-direction: column;
+    .app-main,
+    main.container {
+        padding: var(--space-4) var(--space-4) var(--space-7);
     }
 
     .app-nav-inner {
-        padding: 12px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
     }
 
     .app-nav-links {
         overflow-x: auto;
         flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .app-nav-links a {
+        white-space: nowrap;
+    }
+
+    .app-user {
+        justify-content: space-between;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .batch-bar {
-        display: flex;
         flex-direction: column;
         align-items: stretch;
     }

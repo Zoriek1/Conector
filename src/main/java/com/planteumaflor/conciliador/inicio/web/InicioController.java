@@ -8,6 +8,7 @@ import com.planteumaflor.conciliador.inicio.query.ConsultarInicio;
 import com.planteumaflor.conciliador.pluggy.application.PluggyIntegrationService;
 import com.planteumaflor.conciliador.pluggy.domain.StatusIntegracao;
 import com.planteumaflor.conciliador.pluggy.persistence.IntegracaoPluggyJpaRepository;
+import com.planteumaflor.conciliador.transacao.application.TransferenciasInternas;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,18 +26,21 @@ class InicioController {
     private final IntegracaoPluggyJpaRepository pluggy;
     private final SincronizarExtratoCora sincronizarCora;
     private final PluggyIntegrationService sincronizarPluggy;
+    private final TransferenciasInternas transferenciasInternas;
 
     InicioController(
             ConsultarInicio consultarInicio,
             IntegracaoCoraJpaRepository cora,
             IntegracaoPluggyJpaRepository pluggy,
             SincronizarExtratoCora sincronizarCora,
-            PluggyIntegrationService sincronizarPluggy) {
+            PluggyIntegrationService sincronizarPluggy,
+            TransferenciasInternas transferenciasInternas) {
         this.consultarInicio = consultarInicio;
         this.cora = cora;
         this.pluggy = pluggy;
         this.sincronizarCora = sincronizarCora;
         this.sincronizarPluggy = sincronizarPluggy;
+        this.transferenciasInternas = transferenciasInternas;
     }
 
     @GetMapping
@@ -70,10 +74,14 @@ class InicioController {
                 novasPluggy = sincronizarPluggy.sincronizar(principal.empresaId());
                 conectores++;
             }
+            int transferencias = conectores == 0
+                    ? 0
+                    : transferenciasInternas.detectar(principal.empresaId());
             redirect.addFlashAttribute("sucesso",
                     conectores == 0
                             ? "Nenhum conector ativo para sincronizar."
-                            : "Sincronização concluída. Novas transações Pluggy: " + novasPluggy + ".");
+                            : "Sincronização concluída. Novas transações Pluggy: " + novasPluggy
+                                    + ". Transferências internas detectadas: " + transferencias + ".");
         } catch (RuntimeException e) {
             redirect.addFlashAttribute("erro", "Não foi possível concluir a sincronização.");
         }

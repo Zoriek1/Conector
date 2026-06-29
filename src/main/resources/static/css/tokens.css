@@ -1,21 +1,59 @@
 :root {
-    --app-bg: #f5f7f4;
+    /* Superfícies e texto */
+    --app-bg: #eef2ec;
     --app-surface: #ffffff;
-    --app-surface-muted: #eef3ee;
-    --app-border: #d7ded6;
-    --app-text: #1f2a24;
-    --app-muted: #647067;
+    --app-surface-muted: #f1f5f0;
+    --app-border: #dbe2da;
+    --app-border-strong: #c4cdc2;
+    --app-text: #1b271f;
+    --app-muted: #5c685d;
+    --app-faint: #8a948b;
+
+    /* Marca */
     --app-brand: #246b45;
-    --app-brand-strong: #185533;
+    --app-brand-strong: #184f31;
+    --app-brand-soft: #e4f1e9;
+
+    /* Acentos e estados */
     --app-blue: #235c8f;
-    --app-blue-soft: #e7f0f8;
-    --app-green-soft: #e7f4ed;
-    --app-selection: #f0f7f2;
+    --app-blue-soft: #e6f0f8;
+    --app-green-soft: #e4f1e9;
+    --app-selection: #edf6f0;
     --app-red: #b42318;
-    --app-red-soft: #fde9e7;
-    --app-amber: #936314;
-    --app-amber-soft: #fff2d7;
-    --app-radius: 8px;
-    --app-shadow: 0 12px 30px rgba(31, 42, 36, 0.08);
-    --app-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --app-red-soft: #fdeceb;
+    --app-amber: #8a5a0f;
+    --app-amber-soft: #fdf1d8;
+
+    /* Escala tipográfica */
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.85rem;
+    --fs-base: 0.95rem;
+    --fs-lg: 1.1rem;
+    --fs-xl: 1.4rem;
+    --fs-2xl: 1.7rem;
+
+    /* Escala de espaçamento (base 4px) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    /* Raios */
+    --app-radius-sm: 6px;
+    --app-radius: 10px;
+    --app-radius-lg: 14px;
+
+    /* Elevação */
+    --app-shadow-sm: 0 1px 2px rgba(24, 39, 31, 0.06), 0 1px 3px rgba(24, 39, 31, 0.05);
+    --app-shadow: 0 6px 20px rgba(24, 39, 31, 0.07);
+    --app-shadow-lg: 0 16px 40px rgba(24, 39, 31, 0.12);
+
+    /* Interação */
+    --app-focus-ring: 0 0 0 3px rgba(36, 107, 69, 0.28);
+    --app-transition: 140ms ease;
+
+    --app-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }

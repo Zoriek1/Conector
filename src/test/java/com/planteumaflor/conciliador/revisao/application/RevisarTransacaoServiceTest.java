@@ -132,8 +132,18 @@ class RevisarTransacaoServiceTest {
         }
 
         @Override
+        public Page<Transacao> listarNaoPareadas(UUID empresaId, Pageable pageable) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Page<Transacao> listarPorEstado(
                 UUID empresaId, EstadoTransacao estado, Pageable pageable) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public java.util.List<Transacao> listarCandidatosTransferencia(UUID empresaId) {
             throw new UnsupportedOperationException();
         }
     }

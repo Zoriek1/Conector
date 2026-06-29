@@ -96,6 +96,10 @@ class RevisaoQueryService implements ConsultarFilaRevisao {
         if (filtro.classe() != null) {
             where.append(" AND classe = ?");
             params.add(filtro.classe().name());
+        } else {
+            // Oculta as pernas já pareadas como transferência interna, a menos que o
+            // usuário filtre explicitamente por essa classe.
+            where.append(" AND transfer_par_id IS NULL");
         }
 
         List<String> termos = filtro.termosBusca();

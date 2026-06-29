@@ -10,6 +10,16 @@
             <h1>Transações</h1>
             <p>Todos os lançamentos ingeridos das suas integrações.</p>
         </div>
+        <div class="page-header-actions">
+            <a th:if="${!incluirTransferencias}" class="btn btn-outline-secondary btn-sm"
+               th:href="@{/transacoes(incluirTransferencias=true)}">
+                Mostrar transferências internas
+            </a>
+            <a th:if="${incluirTransferencias}" class="btn btn-outline-secondary btn-sm active"
+               th:href="@{/transacoes}">
+                Ocultar transferências internas
+            </a>
+        </div>
     </header>
 
     <div th:if="${transacoes.empty}" class="empty-state">
@@ -28,11 +38,13 @@
                 <th>Classe</th>
                 <th class="text-end">Confiança</th>
                 <th>Estado</th>
+                <th th:if="${incluirTransferencias}" class="actions-col">Ações</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="t : ${transacoes.content}">
-                <td th:text="${t.data}">2026-01-01</td>
+            <tr th:each="t : ${transacoes.content}"
+                th:classappend="${t.transferOrigem != null} ? 'transfer-row'">
+                <td class="text-nowrap" th:text="${t.data}">2026-01-01</td>
                 <td th:text="${t.contaLocal}">conta</td>
                 <td th:text="${t.descricaoRaw}">descrição</td>
                 <td class="text-end money" th:text="${t.valorLiquido}">0.00</td>
@@ -40,9 +52,21 @@
                     <span th:class="${t.direcao.name() == 'CREDITO'} ? 'direction-badge direction-in' : 'direction-badge direction-out'"
                           th:text="${t.direcao.rotulo}">Entrada</span>
                 </td>
-                <td th:text="${t.classe != null ? t.classe.rotulo : '—'}">Indefinido</td>
+                <td>
+                    <span th:text="${t.classe != null ? t.classe.rotulo : '—'}">Indefinido</span>
+                    <span th:if="${t.transferOrigem != null}" class="status-pill status-neutral transfer-badge">
+                        Transferência interna
+                    </span>
+                </td>
                 <td class="text-end" th:text="${t.confianca}">0.000</td>
                 <td th:text="${t.estado.rotulo}">Ingerido</td>
+                <td th:if="${incluirTransferencias}" class="actions-col">
+                    <form th:if="${t.transferOrigem != null}"
+                          th:action="@{/transacoes/{id}/transferencia/desfazer(id=${t.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-sm btn-outline-warning" type="submit">Desfazer</button>
+                    </form>
+                </td>
             </tr>
             </tbody>
         </table>
@@ -51,13 +75,15 @@
     <nav th:if="${transacoes.totalPages} gt 1" aria-label="Paginação">
         <ul class="pagination">
             <li class="page-item" th:classappend="${transacoes.first} ? 'disabled'">
-                <a class="page-link" th:href="@{/transacoes(page=${transacoes.number - 1})}">Anterior</a>
+                <a class="page-link"
+                   th:href="@{/transacoes(page=${transacoes.number - 1},incluirTransferencias=${incluirTransferencias})}">Anterior</a>
             </li>
             <li class="page-item disabled">
                 <span class="page-link" th:text="${transacoes.number + 1} + ' / ' + ${transacoes.totalPages}">1 / 1</span>
             </li>
             <li class="page-item" th:classappend="${transacoes.last} ? 'disabled'">
-                <a class="page-link" th:href="@{/transacoes(page=${transacoes.number + 1})}">Próxima</a>
+                <a class="page-link"
+                   th:href="@{/transacoes(page=${transacoes.number + 1},incluirTransferencias=${incluirTransferencias})}">Próxima</a>
             </li>
         </ul>
     </nav>

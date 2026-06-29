@@ -55,6 +55,7 @@ class InicioQueryService implements ConsultarInicio {
                 SELECT estado, count(*) total
                   FROM transacao
                  WHERE empresa_id = ?
+                   AND transfer_par_id IS NULL
                  GROUP BY estado
                 """, rs -> {
             resultado.put(rs.getString("estado"), rs.getLong("total"));
@@ -92,6 +93,7 @@ class InicioQueryService implements ConsultarInicio {
                 SELECT data, conta_local, descricao_raw, valor_liquido, direcao, estado
                   FROM transacao
                  WHERE empresa_id = ?
+                   AND transfer_par_id IS NULL
                  ORDER BY data DESC, created_at DESC
                  LIMIT 8
                 """, this::atividade, empresaId);

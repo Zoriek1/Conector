@@ -100,6 +100,13 @@ public class Transacao {
     private UUID transferParId;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "transfer_origem")
+    private OrigemTransferencia transferOrigem;
+
+    @Column(name = "transfer_detectado_em")
+    private Instant transferDetectadoEm;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
     private EstadoTransacao estado;
 
@@ -203,11 +210,56 @@ public class Transacao {
         if (classe != ClasseTransacao.TRANSFERENCIA_INTERNA) {
             throw new IllegalStateException("somente transferência interna pode ser pareada");
         }
+        UUID par = exigirPar(outraTransacaoId);
+        this.transferParId = par;
+        this.transferOrigem = OrigemTransferencia.MANUAL;
+        this.transferDetectadoEm = Instant.now();
+    }
+
+    /**
+     * Normaliza automaticamente um lançamento como transferência interna de mesma
+     * titularidade: reclassifica como {@link ClasseTransacao#TRANSFERENCIA_INTERNA}
+     * (que aceita ambas as direções), aponta para a perna oposta e marca a origem
+     * como automática para permitir o "Desfazer" na UI.
+     */
+    public void detectarTransferenciaInterna(UUID outraTransacaoId) {
+        exigirEstado(EstadoTransacao.CLASSIFICADO, EstadoTransacao.EM_REVISAO);
+        UUID par = exigirPar(outraTransacaoId);
+        this.classe = validarClasseCompativel(ClasseTransacao.TRANSFERENCIA_INTERNA);
+        this.confianca = Confianca.de(BigDecimal.ONE);
+        this.justificativaClassificacao =
+                "transferência interna detectada automaticamente (mesmo valor e data em contas distintas)";
+        this.motivoRevisao = null;
+        this.transferParId = par;
+        this.transferOrigem = OrigemTransferencia.AUTOMATICA;
+        this.transferDetectadoEm = Instant.now();
+        this.estado = EstadoTransacao.CLASSIFICADO;
+    }
+
+    /**
+     * Desfaz o pareamento de transferência interna: limpa os metadados do par e
+     * devolve o lançamento para revisão como indefinido, para nova classificação.
+     */
+    public void desfazerTransferenciaInterna() {
+        if (transferOrigem == null) {
+            throw new IllegalStateException("transação não está pareada como transferência interna");
+        }
+        this.transferParId = null;
+        this.transferOrigem = null;
+        this.transferDetectadoEm = null;
+        this.classe = ClasseTransacao.INDEFINIDO;
+        this.confianca = Confianca.zero();
+        this.justificativaClassificacao = null;
+        this.motivoRevisao = "pareamento de transferência interna desfeito";
+        this.estado = EstadoTransacao.EM_REVISAO;
+    }
+
+    private UUID exigirPar(UUID outraTransacaoId) {
         UUID par = Objects.requireNonNull(outraTransacaoId, "transação par é obrigatória");
         if (par.equals(id)) {
             throw new IllegalArgumentException("transação não pode ser pareada consigo mesma");
         }
-        this.transferParId = par;
+        return par;
     }
 
     public void aprovarParaApi() {
@@ -364,6 +416,18 @@ public class Transacao {
 
     public String getBlingBorderoId() {
         return blingBorderoId;
+    }
+
+    public UUID getTransferParId() {
+        return transferParId;
+    }
+
+    public OrigemTransferencia getTransferOrigem() {
+        return transferOrigem;
+    }
+
+    public Instant getTransferDetectadoEm() {
+        return transferDetectadoEm;
     }
 
     public long getVersion() {

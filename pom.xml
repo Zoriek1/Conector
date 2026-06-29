@@ -91,6 +91,17 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- Apenas desenvolvimento: reinício automático ao recompilar, recarga de
+		     CSS/templates sem rebuild e desativação do cache do Thymeleaf. É optional
+		     e excluído da imagem/jar de produção pelo repackage do Spring Boot. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
