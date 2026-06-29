@@ -76,9 +76,9 @@
                                         <span th:text="${integracao.ultimaSincronizacao ?: 'nunca'}">nunca</span>
                                     </small>
                                 </div>
-                                <span class="badge"
-                                      th:classappend="${integracao.status == 'ATIVA'} ? ' text-bg-success' : (${integracao.status == 'REQUER_ATENCAO'} ? ' text-bg-warning' : ' text-bg-secondary')"
-                                      th:text="${integracao.status}">ATIVA</span>
+                                <span class="status-pill"
+                                      th:classappend="${integracao.status == 'ATIVA'} ? ' status-ok' : (${integracao.status == 'REQUER_ATENCAO'} ? ' status-warning' : (${integracao.status == 'DESCONECTADA'} ? ' status-danger' : ' status-neutral'))"
+                                      th:text="${integracao.statusRotulo}">Conectada</span>
                             </div>
                             <div th:if="${integracao.ultimaFalha}" class="small text-danger mt-2">
                                 Falha: <span th:text="${integracao.ultimaFalha}">COMUNICACAO</span>

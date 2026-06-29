@@ -70,7 +70,7 @@ class TransacaoTest {
         assertThat(ofx.getEstado()).isEqualTo(EstadoTransacao.CONCILIADO);
 
         Transacao api = Transacao.ingerida(dados(new BigDecimal("60.00")));
-        api.classificar(ClasseTransacao.DEBITO_DESPESA, Confianca.de(new BigDecimal("0.990")), "regra");
+        api.classificar(ClasseTransacao.CREDITO_VENDA, Confianca.de(new BigDecimal("0.990")), "regra");
         api.aprovarParaApi();
         api.registrarFalha();
         api.tentarNovamenteApi();
@@ -82,12 +82,22 @@ class TransacaoTest {
         Transacao transacao = Transacao.ingerida(dados(new BigDecimal("30.00")));
         transacao.enviarParaRevisao("nenhuma regra correspondeu");
 
-        transacao.reclassificarManualmente(ClasseTransacao.DEBITO_DESPESA, "ajuste manual");
+        transacao.reclassificarManualmente(ClasseTransacao.CREDITO_VENDA, "ajuste manual");
 
         assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
-        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.DEBITO_DESPESA);
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.CREDITO_VENDA);
         assertThat(transacao.getConfianca()).isEqualTo(Confianca.de(BigDecimal.ONE));
         assertThat(transacao.getMotivoRevisao()).isNull();
+    }
+
+    @Test
+    void rejeitaClasseIncompativelComDirecao() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("30.00")));
+        transacao.enviarParaRevisao("nenhuma regra correspondeu");
+
+        assertThatThrownBy(() ->
+                transacao.reclassificarManualmente(ClasseTransacao.DEBITO_DESPESA, "ajuste"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

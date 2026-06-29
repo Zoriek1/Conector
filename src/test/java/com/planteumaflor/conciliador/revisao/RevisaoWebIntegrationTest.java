@@ -51,13 +51,80 @@ class RevisaoWebIntegrationTest {
     void filaMostraSomentePendenciasDaEmpresaAutenticada() throws Exception {
         CadastroRealizado empresaA = cadastrar("revisao-a@example.com");
         CadastroRealizado empresaB = cadastrar("revisao-b@example.com");
-        transacoes.salvar(pendente(empresaA.empresaId(), "Descrição exclusiva A"));
-        transacoes.salvar(pendente(empresaB.empresaId(), "Descrição exclusiva B"));
+        transacoes.salvar(pendente(empresaA.empresaId(), "Descricao exclusiva A"));
+        transacoes.salvar(pendente(empresaB.empresaId(), "Descricao exclusiva B"));
 
         mvc.perform(get("/revisao").with(user(principalDe(empresaA))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Descrição exclusiva A")))
-                .andExpect(content().string(not(containsString("Descrição exclusiva B"))));
+                .andExpect(content().string(containsString("Descricao exclusiva A")))
+                .andExpect(content().string(not(containsString("Descricao exclusiva B"))));
+    }
+
+    @Test
+    void filaCarregaCssDoApp() throws Exception {
+        CadastroRealizado empresa = cadastrar("css@example.com");
+
+        mvc.perform(get("/revisao").with(user(principalDe(empresa))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/css/tokens.css")))
+                .andExpect(content().string(containsString("/css/app.css")));
+    }
+
+    @Test
+    void filaTemSelecaoEmLoteSemCliqueLinhaALinha() throws Exception {
+        CadastroRealizado empresa = cadastrar("lote-ui@example.com");
+        transacoes.salvar(pendente(empresa.empresaId(), "item lote ui"));
+
+        mvc.perform(get("/revisao").with(user(principalDe(empresa))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("app-main-wide")))
+                .andExpect(content().string(containsString("data-select-page")))
+                .andExpect(content().string(containsString("data-select-visible")))
+                .andExpect(content().string(containsString("data-select-direction=\"CREDITO\"")))
+                .andExpect(content().string(containsString("data-batch-item")))
+                .andExpect(content().string(containsString("name=\"size\"")))
+                .andExpect(content().string(containsString(">100</option>")));
+    }
+
+    @Test
+    void buscaLikeAceitaMultiplosTermosEIsolaTenant() throws Exception {
+        CadastroRealizado empresaA = cadastrar("busca-a@example.com");
+        CadastroRealizado empresaB = cadastrar("busca-b@example.com");
+        transacoes.salvar(pendente(novaTransacao(
+                empresaA.empresaId(), "Compra Alpha", Direcao.DEBITO,
+                "conta-cora", "doc-alpha", "E2E-1")));
+        transacoes.salvar(pendente(novaTransacao(
+                empresaA.empresaId(), "Segundo item", Direcao.CREDITO,
+                "stone destino", "doc-beta", "E2E-BATCH-777")));
+        transacoes.salvar(pendente(empresaA.empresaId(), "Nao deve aparecer"));
+        transacoes.salvar(pendente(empresaB.empresaId(), "Compra Alpha outra empresa"));
+
+        mvc.perform(get("/revisao")
+                        .param("q", "alpha,E2E-BATCH")
+                        .with(user(principalDe(empresaA))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Compra Alpha")))
+                .andExpect(content().string(containsString("Segundo item")))
+                .andExpect(content().string(not(containsString("Nao deve aparecer"))))
+                .andExpect(content().string(not(containsString("outra empresa"))));
+    }
+
+    @Test
+    void filtroPorDirecaoSeparaEntradasESaidas() throws Exception {
+        CadastroRealizado empresa = cadastrar("direcao@example.com");
+        transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "entrada visivel", Direcao.CREDITO,
+                "conta-cora", null, null)));
+        transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "saida escondida", Direcao.DEBITO,
+                "conta-cora", null, null)));
+
+        mvc.perform(get("/revisao")
+                        .param("direcao", "CREDITO")
+                        .with(user(principalDe(empresa))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("entrada visivel")))
+                .andExpect(content().string(not(containsString("saida escondida"))));
     }
 
     @Test
@@ -87,11 +154,88 @@ class RevisaoWebIntegrationTest {
 
         mvc.perform(post("/revisao/{id}/classificar", item.getId())
                         .param("version", String.valueOf(item.getVersion()))
-                        .param("classe", ClasseTransacao.DEBITO_DESPESA.name())
+                        .param("classe", ClasseTransacao.CREDITO_VENDA.name())
                         .with(user(principalDe(empresa))).with(csrf()))
                 .andExpect(status().isOk());
 
         assertThat(estadoDe(empresa, item.getId())).isEqualTo(EstadoTransacao.CLASSIFICADO);
+        assertThat(classeDe(empresa, item.getId())).isEqualTo(ClasseTransacao.CREDITO_VENDA);
+    }
+
+    @Test
+    void classificarLoteAplicaCategoriaParaSelecionadas() throws Exception {
+        CadastroRealizado empresa = cadastrar("lote@example.com");
+        Transacao itemA = transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "fornecedor lote A", Direcao.DEBITO,
+                "conta-cora", null, null)));
+        Transacao itemB = transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "fornecedor lote B", Direcao.DEBITO,
+                "conta-cora", null, null)));
+
+        mvc.perform(post("/revisao/lote/classificar")
+                        .param("ids", itemA.getId().toString(), itemB.getId().toString())
+                        .param("versions", String.valueOf(itemA.getVersion()), String.valueOf(itemB.getVersion()))
+                        .param("classe", ClasseTransacao.FLORES_FOLHAGENS_PLANTAS.name())
+                        .with(user(principalDe(empresa))).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("fila-container")));
+
+        assertThat(classeDe(empresa, itemA.getId())).isEqualTo(ClasseTransacao.FLORES_FOLHAGENS_PLANTAS);
+        assertThat(classeDe(empresa, itemB.getId())).isEqualTo(ClasseTransacao.FLORES_FOLHAGENS_PLANTAS);
+        assertThat(estadoDe(empresa, itemA.getId())).isEqualTo(EstadoTransacao.CLASSIFICADO);
+        assertThat(estadoDe(empresa, itemB.getId())).isEqualTo(EstadoTransacao.CLASSIFICADO);
+    }
+
+    @Test
+    void classificarLoteRejeitaCategoriaIncompativelComDirecao() throws Exception {
+        CadastroRealizado empresa = cadastrar("lote-incompativel@example.com");
+        Transacao item = transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "saida lote", Direcao.DEBITO,
+                "conta-cora", null, null)));
+
+        mvc.perform(post("/revisao/lote/classificar")
+                        .param("ids", item.getId().toString())
+                        .param("versions", String.valueOf(item.getVersion()))
+                        .param("classe", ClasseTransacao.CREDITO_VENDA.name())
+                        .with(user(principalDe(empresa))).with(csrf()))
+                .andExpect(status().isUnprocessableEntity());
+
+        assertThat(classeDe(empresa, item.getId())).isEqualTo(ClasseTransacao.INDEFINIDO);
+        assertThat(estadoDe(empresa, item.getId())).isEqualTo(EstadoTransacao.EM_REVISAO);
+    }
+
+    @Test
+    void classificarLoteComConflitoNaoAlteraNenhumItem() throws Exception {
+        CadastroRealizado empresa = cadastrar("lote-conflito@example.com");
+        Transacao itemA = transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "lote conflito A", Direcao.DEBITO,
+                "conta-cora", null, null)));
+        Transacao itemB = transacoes.salvar(pendente(novaTransacao(
+                empresa.empresaId(), "lote conflito B", Direcao.DEBITO,
+                "conta-cora", null, null)));
+
+        mvc.perform(post("/revisao/lote/classificar")
+                        .param("ids", itemA.getId().toString(), itemB.getId().toString())
+                        .param("versions", String.valueOf(itemA.getVersion()), String.valueOf(itemB.getVersion() + 99))
+                        .param("classe", ClasseTransacao.FLORES_FOLHAGENS_PLANTAS.name())
+                        .with(user(principalDe(empresa))).with(csrf()))
+                .andExpect(status().isConflict());
+
+        assertThat(classeDe(empresa, itemA.getId())).isEqualTo(ClasseTransacao.INDEFINIDO);
+        assertThat(classeDe(empresa, itemB.getId())).isEqualTo(ClasseTransacao.INDEFINIDO);
+    }
+
+    @Test
+    void classificarLoteEmFalhaResponde422() throws Exception {
+        CadastroRealizado empresa = cadastrar("lote-falha@example.com");
+        Transacao item = transacoes.salvar(emFalha(empresa.empresaId(), "falha lote"));
+
+        mvc.perform(post("/revisao/lote/classificar")
+                        .param("ids", item.getId().toString())
+                        .param("versions", String.valueOf(item.getVersion()))
+                        .param("classe", ClasseTransacao.FLORES_FOLHAGENS_PLANTAS.name())
+                        .with(user(principalDe(empresa))).with(csrf()))
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -165,7 +309,6 @@ class RevisaoWebIntegrationTest {
         CadastroRealizado empresa = cadastrar("invalida@example.com");
         Transacao item = transacoes.salvar(pendente(empresa.empresaId(), "invalida"));
 
-        // retry exige estado FALHA; em EM_REVISAO a transição é inválida.
         mvc.perform(post("/revisao/{id}/retry", item.getId())
                         .param("version", String.valueOf(item.getVersion()))
                         .with(user(principalDe(empresa))).with(csrf()))
@@ -191,7 +334,7 @@ class RevisaoWebIntegrationTest {
         mvc.perform(get("/revisao/fila").with(user(principalDe(empresa))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("fila-container")))
-                .andExpect(content().string(not(containsString("<nav"))));
+                .andExpect(content().string(not(containsString("app-nav"))));
     }
 
     @Test
@@ -210,6 +353,10 @@ class RevisaoWebIntegrationTest {
         return transacoes.buscarPorId(empresa.empresaId(), id).orElseThrow().getEstado();
     }
 
+    private ClasseTransacao classeDe(CadastroRealizado empresa, UUID id) {
+        return transacoes.buscarPorId(empresa.empresaId(), id).orElseThrow().getClasse();
+    }
+
     private UsuarioPrincipal principalDe(CadastroRealizado empresa) {
         return UsuarioPrincipal.de(usuarios.findById(empresa.usuarioId()).orElseThrow());
     }
@@ -220,13 +367,18 @@ class RevisaoWebIntegrationTest {
     }
 
     private Transacao pendente(UUID empresaId, String descricao) {
-        Transacao transacao = novaTransacao(empresaId, descricao);
+        return pendente(novaTransacao(
+                empresaId, descricao, Direcao.CREDITO, "cora", null, null));
+    }
+
+    private Transacao pendente(Transacao transacao) {
         transacao.enviarParaRevisao("nenhuma regra correspondeu");
         return transacao;
     }
 
     private Transacao emFalha(UUID empresaId, String descricao) {
-        Transacao transacao = novaTransacao(empresaId, descricao);
+        Transacao transacao = novaTransacao(
+                empresaId, descricao, Direcao.DEBITO, "cora", null, null);
         transacao.classificar(
                 ClasseTransacao.DEBITO_DESPESA, Confianca.de(new BigDecimal("0.990")), "regra");
         transacao.aprovarParaApi();
@@ -234,18 +386,24 @@ class RevisaoWebIntegrationTest {
         return transacao;
     }
 
-    private Transacao novaTransacao(UUID empresaId, String descricao) {
+    private Transacao novaTransacao(
+            UUID empresaId,
+            String descricao,
+            Direcao direcao,
+            String conta,
+            String documento,
+            String e2eId) {
         return Transacao.ingerida(new DadosTransacao(
                 empresaId,
                 FonteIntegracao.CORA,
                 "ext-" + UUID.randomUUID(),
                 "conta-cora",
-                "cora",
+                conta,
                 LocalDate.of(2026, 6, 24),
                 new BigDecimal("25.00"),
-                Direcao.CREDITO,
+                direcao,
                 descricao,
-                null,
-                null));
+                documento,
+                e2eId));
     }
 }

@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<!--
-  Barra superior da área autenticada (app shell mínimo). Inclua com:
-    <nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
-  A sidebar completa (tela 04/05) é refinamento posterior.
--->
 <body>
-<nav th:fragment="navbar(email)" class="navbar navbar-expand bg-white border-bottom mb-4">
-    <div class="container-fluid">
-        <a th:href="@{/inicio}" class="navbar-brand fw-semibold link-dark text-decoration-none">Conciliador</a>
-        <div class="d-flex align-items-center gap-3">
-            <a th:href="@{/inicio}" class="link-secondary">Início</a>
-            <a th:href="@{/transacoes}" class="link-secondary">Transações</a>
-            <a th:href="@{/revisao}" class="link-secondary">Revisão</a>
-            <a th:href="@{/integracoes}" class="link-secondary">Integrações</a>
-            <a th:href="@{/ofx/lotes}" class="link-secondary">OFX</a>
-            <a th:href="@{/perfil}" class="link-secondary">Perfil</a>
-            <span class="text-muted small" th:text="${email}">email</span>
+<nav th:fragment="navbar(email)" class="app-nav">
+    <div class="app-nav-inner">
+        <a th:href="@{/inicio}" class="app-brand">Conciliador</a>
+        <div class="app-nav-links">
+            <a th:href="@{/inicio}">Início</a>
+            <a th:href="@{/revisao}">Revisão</a>
+            <a th:href="@{/transacoes}">Transações</a>
+            <a th:href="@{/ofx/lotes}">OFX</a>
+            <a th:href="@{/integracoes}">Integrações</a>
+            <a th:href="@{/perfil}">Perfil</a>
+        </div>
+        <div class="app-user">
+            <span th:text="${email}">email</span>
             <form th:action="@{/sair}" method="post" class="m-0">
                 <button class="btn btn-outline-secondary btn-sm" type="submit">Sair</button>
             </form>

@@ -1,113 +1,152 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Integrações')}"></head>
-<body class="bg-light">
+<body class="app-body">
 <nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
 
-<main class="container">
-    <div class="d-flex justify-content-between align-items-start mb-4">
+<main class="container app-main">
+    <header class="page-header">
         <div>
-            <h1 class="h3 mb-1">Integrações</h1>
-            <p class="text-muted mb-0">Credenciais por empresa, armazenadas cifradas no banco.</p>
+            <h1>Integrações</h1>
+            <p>Conecte os bancos uma vez. As credenciais ficam cifradas e são reutilizadas a cada sincronização.</p>
         </div>
         <a th:href="@{/inicio}" class="btn btn-outline-secondary btn-sm">Voltar ao início</a>
-    </div>
+    </header>
 
     <div th:if="${sucesso}" class="alert alert-success" th:text="${sucesso}"></div>
     <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
 
     <div class="row g-4">
+        <!-- ===================== CORA ===================== -->
         <section class="col-lg-6">
-            <div class="card h-100">
+            <div class="card integration-card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="fw-semibold">Cora</span>
-                    <span class="badge"
-                          th:classappend="${cora.status == 'ATIVA'} ? ' text-bg-success' : (${cora.status == 'REQUER_ATENCAO'} ? ' text-bg-warning' : ' text-bg-secondary')"
-                          th:text="${cora.status}">NAO_CONECTADA</span>
+                    <span class="status-pill"
+                          th:classappend="${cora.status == 'ATIVA'} ? ' status-ok' : (${cora.status == 'REQUER_ATENCAO'} ? ' status-warning' : (${cora.status == 'DESCONECTADA'} ? ' status-danger' : ' status-neutral'))"
+                          th:text="${cora.statusRotulo}">Não conectada</span>
                 </div>
                 <div class="card-body">
-                    <p class="small text-muted">
-                        Integração direta por clientId, certificado e chave privada. O valor não volta para o HTML.
-                    </p>
-                    <form th:action="@{/integracoes/cora/credenciais}" method="post" class="vstack gap-3">
-                        <div>
-                            <label for="clientId" class="form-label">Client ID</label>
-                            <input type="text" id="clientId" name="clientId" class="form-control" required>
+                    <!-- Já conectado: mostra estado salvo e esconde o formulário -->
+                    <div th:if="${cora.credenciaisSalvas}">
+                        <div class="integration-connected">
+                            <span class="connected-dot"></span>
+                            <div>
+                                <strong>Credenciais salvas e cifradas</strong>
+                                <small class="d-block text-muted">
+                                    Conectado em <span th:text="${cora.conectadoEm}">data</span>
+                                </small>
+                            </div>
                         </div>
-                        <div>
-                            <label for="certificadoPem" class="form-label">Certificado PEM</label>
-                            <textarea id="certificadoPem" name="certificadoPem" class="form-control" rows="5" required></textarea>
+                        <div th:if="${cora.ultimaFalha}" class="alert alert-warning py-2 px-3 small mt-3 mb-0">
+                            <span th:text="${cora.ultimaFalha}">falha</span>
+                            <span th:if="${cora.falhasConsecutivas > 1}"
+                                  th:text="'(' + ${cora.falhasConsecutivas} + ' tentativas seguidas)'"></span>
                         </div>
-                        <div>
-                            <label for="chavePrivadaPem" class="form-label">Private key PEM</label>
-                            <textarea id="chavePrivadaPem" name="chavePrivadaPem" class="form-control" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-success">Salvar Cora</button>
-                    </form>
+                        <details class="cred-update mt-3">
+                            <summary>Atualizar credenciais</summary>
+                            <div th:replace="~{integracoes/forms :: coraForm}"></div>
+                        </details>
+                    </div>
+
+                    <!-- Ainda não conectado: formulário aberto -->
+                    <div th:unless="${cora.credenciaisSalvas}">
+                        <p class="small text-muted">
+                            Integração direta por Client ID, certificado e chave privada (mTLS). Os valores são
+                            cifrados ao salvar e nunca voltam para o navegador.
+                        </p>
+                        <div th:replace="~{integracoes/forms :: coraForm}"></div>
+                    </div>
                 </div>
                 <div class="card-footer d-flex justify-content-between align-items-center">
                     <small class="text-muted">
-                        Última sync:
+                        Última sincronização:
                         <span th:text="${cora.ultimaSincronizacao ?: 'nunca'}">nunca</span>
                     </small>
-                    <form th:action="@{/integracoes/cora/sincronizar}" method="post">
-                        <button type="submit" class="btn btn-outline-primary btn-sm">Sincronizar</button>
+                    <form th:if="${cora.credenciaisSalvas}" th:action="@{/integracoes/cora/sincronizar}" method="post">
+                        <button type="submit" class="btn btn-primary btn-sm">Sincronizar</button>
                     </form>
                 </div>
             </div>
         </section>
 
+        <!-- ===================== PLUGGY ===================== -->
         <section class="col-lg-6">
-            <div class="card h-100">
+            <div class="card integration-card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="fw-semibold">Pluggy</span>
-                    <span class="badge"
-                          th:classappend="${pluggy.status == 'ATIVA'} ? ' text-bg-success' : (${pluggy.status == 'REQUER_ATENCAO'} ? ' text-bg-warning' : ' text-bg-secondary')"
-                          th:text="${pluggy.status}">NAO_CONECTADA</span>
+                    <span class="status-pill"
+                          th:classappend="${pluggy.status == 'ATIVA'} ? ' status-ok' : (${pluggy.status == 'REQUER_ATENCAO'} ? ' status-warning' : (${pluggy.status == 'DESCONECTADA'} ? ' status-danger' : ' status-neutral'))"
+                          th:text="${pluggy.statusRotulo}">Não conectada</span>
                 </div>
                 <div class="card-body">
-                    <p class="small text-muted">
-                        Client ID e Client Secret do Meu Pluggy ficam cifrados. O navegador recebe só o connect token efêmero.
-                    </p>
-                    <form th:action="@{/integracoes/pluggy/credenciais}" method="post" class="vstack gap-3 mb-3">
-                        <div>
-                            <label for="pluggyClientId" class="form-label">Client ID</label>
-                            <input type="text" id="pluggyClientId" name="clientId" class="form-control" required>
+                    <!-- Credenciais já salvas -->
+                    <div th:if="${pluggy.credenciaisSalvas}">
+                        <div class="integration-connected">
+                            <span class="connected-dot"></span>
+                            <div>
+                                <strong>Credenciais salvas e cifradas</strong>
+                                <small class="d-block text-muted">
+                                    Conectado em <span th:text="${pluggy.conectadoEm}">data</span>
+                                </small>
+                            </div>
                         </div>
-                        <div>
-                            <label for="pluggyClientSecret" class="form-label">Client Secret</label>
-                            <input type="password" id="pluggyClientSecret" name="clientSecret" class="form-control" required>
+                        <div th:if="${pluggy.ultimaFalha}" class="alert alert-warning py-2 px-3 small mt-3 mb-0">
+                            <span th:text="${pluggy.ultimaFalha}">falha</span>
                         </div>
-                        <button type="submit" class="btn btn-success">Salvar Pluggy</button>
-                    </form>
+                        <details class="cred-update mt-3">
+                            <summary>Atualizar credenciais</summary>
+                            <div th:replace="~{integracoes/forms :: pluggyForm}"></div>
+                        </details>
+                    </div>
 
-                    <form th:action="@{/integracoes/pluggy/conectar}" method="post" class="mb-3">
-                        <button type="submit" class="btn btn-outline-primary">Gerar connect token</button>
-                    </form>
+                    <!-- Ainda sem credenciais -->
+                    <div th:unless="${pluggy.credenciaisSalvas}">
+                        <p class="small text-muted">
+                            Client ID e Client Secret do Meu Pluggy ficam cifrados. O navegador recebe só o
+                            connect token efêmero.
+                        </p>
+                        <div th:replace="~{integracoes/forms :: pluggyForm}"></div>
+                    </div>
 
-                    <div th:if="${pluggyConnectToken}" class="alert alert-info">
-                        <div class="fw-semibold mb-2">Connect token gerado</div>
-                        <code class="d-block text-break" th:text="${pluggyConnectToken}">token</code>
-                        <form id="pluggyRetorno" th:action="@{/integracoes/pluggy/retorno}" method="post" class="mt-3">
-                            <label for="pluggyItemId" class="form-label">Item ID retornado pelo Pluggy Connect</label>
-                            <input type="text" id="pluggyItemId" name="itemId" class="form-control" required>
-                            <button type="submit" class="btn btn-primary btn-sm mt-2">Confirmar item</button>
-                        </form>
+                    <!-- Passo 2: conectar o banco via widget -->
+                    <div th:if="${pluggy.credenciaisSalvas}" class="connect-step mt-3 pt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">
+                                <span th:if="${pluggy.itemConectado}">Banco conectado. Reabra para trocar de conta.</span>
+                                <span th:unless="${pluggy.itemConectado}">Conecte sua conta bancária no widget do Pluggy.</span>
+                            </span>
+                            <form th:action="@{/integracoes/pluggy/conectar}" method="post">
+                                <button type="submit" class="btn btn-outline-primary btn-sm"
+                                        th:text="${pluggy.itemConectado} ? 'Reconectar banco' : 'Conectar banco'">Conectar banco</button>
+                            </form>
+                        </div>
+
+                        <div th:if="${pluggyConnectToken}" class="alert alert-info mt-3 mb-0">
+                            <div class="fw-semibold mb-2">Connect token gerado</div>
+                            <code class="d-block text-break" th:text="${pluggyConnectToken}">token</code>
+                            <form id="pluggyRetorno" th:action="@{/integracoes/pluggy/retorno}" method="post" class="mt-3">
+                                <label for="pluggyItemId" class="form-label">Item ID retornado pelo Pluggy Connect</label>
+                                <input type="text" id="pluggyItemId" name="itemId" class="form-control" required>
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">Confirmar item</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 <div class="card-footer d-flex justify-content-between align-items-center">
                     <small class="text-muted">
-                        Última sync:
+                        Última sincronização:
                         <span th:text="${pluggy.ultimaSincronizacao ?: 'nunca'}">nunca</span>
                     </small>
-                    <form th:action="@{/integracoes/pluggy/sincronizar}" method="post">
-                        <button type="submit" class="btn btn-outline-primary btn-sm">Sincronizar</button>
+                    <form th:if="${pluggy.itemConectado}" th:action="@{/integracoes/pluggy/sincronizar}" method="post">
+                        <button type="submit" class="btn btn-primary btn-sm">Sincronizar</button>
                     </form>
                 </div>
             </div>
         </section>
     </div>
 
+    <!-- ===================== CONTAS ===================== -->
     <section class="mt-4">
         <div class="card">
             <div class="card-header fw-semibold">Contas bancárias</div>
@@ -138,7 +177,8 @@
                     <div class="col-md-2">
                         <label for="tipo" class="form-label">Tipo</label>
                         <select id="tipo" name="tipo" class="form-select">
-                            <option th:each="tipo : ${tiposConta}" th:value="${tipo}" th:text="${tipo}"></option>
+                            <option th:each="tipo : ${tiposConta}"
+                                    th:value="${tipo.name()}" th:text="${tipo.rotulo}"></option>
                         </select>
                     </div>
                     <div class="col-12">
@@ -146,12 +186,12 @@
                     </div>
                 </form>
 
-                <div th:if="${#lists.isEmpty(contas)}" class="alert alert-secondary">
+                <div th:if="${#lists.isEmpty(contas)}" class="empty-state">
                     Nenhuma conta cadastrada ou descoberta ainda.
                 </div>
 
                 <div th:unless="${#lists.isEmpty(contas)}" class="table-responsive">
-                    <table class="table table-sm align-middle">
+                    <table class="table app-table align-middle mb-0" style="min-width: 0">
                         <thead>
                         <tr>
                             <th>Fonte</th>
@@ -166,15 +206,15 @@
                         </thead>
                         <tbody>
                         <tr th:each="conta : ${contas}">
-                            <td th:text="${conta.fonte}">CORA</td>
+                            <td th:text="${conta.fonte}">Cora</td>
                             <td th:text="${conta.nome}">Conta</td>
                             <td th:text="${conta.bancoCodigo ?: '-'}">-</td>
                             <td th:text="${conta.agencia ?: '-'}">-</td>
                             <td th:text="${conta.numero ?: conta.idContaExterna}">-</td>
-                            <td th:text="${conta.tipo}">CORRENTE</td>
+                            <td th:text="${conta.tipo}">Conta corrente</td>
                             <td>
-                                <span th:if="${conta.ativa}" class="badge text-bg-success">ativa</span>
-                                <span th:unless="${conta.ativa}" class="badge text-bg-secondary">pausada</span>
+                                <span th:if="${conta.ativa}" class="status-pill status-ok">Ativa</span>
+                                <span th:unless="${conta.ativa}" class="status-pill status-neutral">Pausada</span>
                             </td>
                             <td class="text-end">
                                 <form th:if="${conta.ativa}" th:action="@{/integracoes/contas/{id}/pausar(id=${conta.id})}" method="post">

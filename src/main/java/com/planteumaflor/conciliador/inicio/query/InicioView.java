@@ -18,6 +18,7 @@ public record InicioView(
     public record IntegracaoStatusView(
             String nome,
             String status,
+            String statusRotulo,
             Instant ultimaSincronizacao,
             String ultimaFalha,
             int falhasConsecutivas) {}

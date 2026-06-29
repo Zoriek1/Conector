@@ -1,31 +1,104 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Revisão')}"></head>
-<body class="bg-light">
+<body class="app-body">
 <nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
 
-<main class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<main class="container-fluid app-main app-main-wide">
+    <header class="page-header">
         <div>
-            <h1 class="h3 mb-1">Fila de revisão</h1>
-            <p class="text-muted mb-0">Lançamentos que precisam de decisão humana.</p>
+            <h1>Fila de revisão</h1>
+            <p>Lançamentos que precisam de decisão humana, com entradas e saídas separadas por filtro.</p>
         </div>
-        <span class="badge text-bg-warning"
-              th:text="${itens.totalElements} + ' item(ns)'">0 itens</span>
-    </div>
+        <span class="metric-pill" th:text="${itens.totalElements} + ' item(ns)'">0 itens</span>
+    </header>
 
-    <ul class="nav nav-pills mb-3">
-        <li class="nav-item">
-            <a class="nav-link" th:classappend="${estado.name() == 'EM_REVISAO'} ? 'active'"
-               th:href="@{/revisao(estado='EM_REVISAO')}">Em revisão</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" th:classappend="${estado.name() == 'FALHA'} ? 'active'"
-               th:href="@{/revisao(estado='FALHA')}">Falhas</a>
-        </li>
-    </ul>
+    <section class="filter-panel" aria-label="Filtros da revisão">
+        <form id="filtros-revisao" th:action="@{/revisao}" method="get" class="row g-3 align-items-end">
+            <div class="col-lg-4">
+                <label for="q" class="form-label">Busca</label>
+                <input id="q" class="form-control" type="search" name="q"
+                       th:value="${q}"
+                       placeholder="descrição, conta, documento, ID ou referência">
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="estado" class="form-label">Estado</label>
+                <select id="estado" name="estado" class="form-select">
+                    <option value="EM_REVISAO" th:selected="${estado.name() == 'EM_REVISAO'}">Em revisão</option>
+                    <option value="FALHA" th:selected="${estado.name() == 'FALHA'}">Falhas</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <label for="direcao" class="form-label">Tipo</label>
+                <select id="direcao" name="direcao" class="form-select">
+                    <option value="" th:selected="${direcao == null}">Todas</option>
+                    <option value="CREDITO" th:selected="${direcao != null and direcao.name() == 'CREDITO'}">Entradas</option>
+                    <option value="DEBITO" th:selected="${direcao != null and direcao.name() == 'DEBITO'}">Saídas</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label for="classe" class="form-label">Categoria</label>
+                <select id="classe" name="classe" class="form-select">
+                    <option value="" th:selected="${classe == null}">Todas as categorias</option>
+                    <option th:each="c : ${classes}"
+                            th:value="${c.name()}"
+                            th:selected="${classe == c}"
+                            th:text="${c.rotulo}">Categoria</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-lg-1">
+                <label for="size" class="form-label">Linhas</label>
+                <select id="size" name="size" class="form-select">
+                    <option th:each="opcao : ${opcoesTamanhoPagina}"
+                            th:value="${opcao}"
+                            th:selected="${opcao == tamanhoPagina}"
+                            th:text="${opcao}">100</option>
+                </select>
+            </div>
+            <div class="col-lg-1 d-grid">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+            </div>
+        </form>
+    </section>
 
-    <!-- Região de alertas de erro (404/409/422) injetada pelo HTMX. -->
+    <form id="form-classificar-lote"
+          class="batch-bar"
+          th:attr="hx-post=@{/revisao/lote/classificar}"
+          hx-target="#fila-container"
+          hx-swap="outerHTML"
+          method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" name="estado" th:value="${estado}">
+        <input type="hidden" name="direcao" th:value="${direcao}">
+        <input type="hidden" name="classeFiltro" th:value="${classe}">
+        <input type="hidden" name="q" th:value="${q}">
+        <input type="hidden" name="page" th:value="${itens.number}">
+        <input type="hidden" name="size" th:value="${tamanhoPagina}">
+
+        <div class="batch-summary">
+            <strong>Classificação em lote</strong>
+            <span><b data-selected-count>0</b> selecionada(s). Use os atalhos ou clique na linha.</span>
+        </div>
+        <div class="batch-selectors" aria-label="Seleção rápida">
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-select-visible>Página</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-select-direction="CREDITO">Entradas</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-select-direction="DEBITO">Saídas</button>
+            <button class="btn btn-link btn-sm" type="button" data-clear-selection>Limpar</button>
+        </div>
+        <select class="form-select form-select-sm batch-category" name="classe" aria-label="Categoria para o lote" required>
+            <option value="">Categoria</option>
+            <option th:each="c : ${classesLote}"
+                    th:value="${c.name()}"
+                    th:attr="data-direcao=${c.direcaoPermitida == null ? '' : c.direcaoPermitida.name()}"
+                    th:text="${c.rotulo}">Categoria</option>
+        </select>
+        <input class="form-control form-control-sm batch-justification" name="justificativa"
+               placeholder="justificativa opcional" aria-label="Justificativa do lote">
+        <button class="btn btn-success btn-sm batch-submit" type="submit" data-batch-submit disabled>
+            Classificar selecionadas
+        </button>
+    </form>
+
     <div id="revisao-erro" aria-live="polite"></div>
 
     <div th:replace="~{revisao/fragments :: fila}"></div>
@@ -33,8 +106,174 @@
 
 <script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
 <script>
-    // htmx não troca respostas 4xx por padrão; exibimos o alerta de erro
-    // devolvido pelo servidor e recarregamos a fila para refletir o estado atual.
+    (function () {
+        var lastBatchCheck = null;
+
+        function checks() {
+            return Array.from(document.querySelectorAll('[data-batch-item]'));
+        }
+
+        function selectedChecks() {
+            return checks().filter(function (check) { return check.checked; });
+        }
+
+        function setChecks(predicate) {
+            checks().forEach(function (check) {
+                check.checked = predicate(check);
+            });
+            lastBatchCheck = null;
+            refreshBatchSelection();
+        }
+
+        function setRange(toCheck, checked) {
+            if (!lastBatchCheck || lastBatchCheck === toCheck) {
+                return;
+            }
+            var all = checks();
+            var fromIndex = all.indexOf(lastBatchCheck);
+            var toIndex = all.indexOf(toCheck);
+            if (fromIndex < 0 || toIndex < 0) {
+                return;
+            }
+            var start = Math.min(fromIndex, toIndex);
+            var end = Math.max(fromIndex, toIndex);
+            all.slice(start, end + 1).forEach(function (check) {
+                check.checked = checked;
+            });
+        }
+
+        function chooseCheck(check, checked, range) {
+            if (range) {
+                setRange(check, checked);
+            }
+            check.checked = checked;
+            lastBatchCheck = check;
+            refreshBatchSelection();
+        }
+
+        function updateCategoryOptions(selected) {
+            var select = document.querySelector('#form-classificar-lote select[name="classe"]');
+            if (!select) {
+                return;
+            }
+
+            var directions = new Set(selected.map(function (check) {
+                return check.dataset.direcao;
+            }).filter(Boolean));
+            var selectedDirection = directions.size === 1 ? Array.from(directions)[0] : '';
+            var hasSelection = selected.length > 0;
+            var mixedDirections = directions.size > 1;
+
+            Array.from(select.options).forEach(function (option) {
+                if (!option.value) {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+                var optionDirection = option.dataset.direcao || '';
+                var visible = !hasSelection
+                        || (mixedDirections && !optionDirection)
+                        || (!mixedDirections && (!optionDirection || optionDirection === selectedDirection));
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+
+            if (select.selectedOptions.length && select.selectedOptions[0].disabled) {
+                select.value = '';
+            }
+        }
+
+        function refreshBatchSelection() {
+            var all = checks();
+            var selected = selectedChecks();
+
+            document.querySelectorAll('[data-selected-count]').forEach(function (counter) {
+                counter.textContent = String(selected.length);
+            });
+
+            var submit = document.querySelector('[data-batch-submit]');
+            if (submit) {
+                submit.disabled = selected.length === 0;
+            }
+
+            document.querySelectorAll('[data-select-page]').forEach(function (toggle) {
+                toggle.checked = all.length > 0 && selected.length === all.length;
+                toggle.indeterminate = selected.length > 0 && selected.length < all.length;
+                toggle.disabled = all.length === 0;
+            });
+
+            all.forEach(function (check) {
+                var row = check.closest('tr');
+                if (row) {
+                    row.classList.toggle('is-selected', check.checked);
+                }
+            });
+
+            if (lastBatchCheck && !document.body.contains(lastBatchCheck)) {
+                lastBatchCheck = null;
+            }
+
+            updateCategoryOptions(selected);
+        }
+
+        document.addEventListener('change', function (event) {
+            if (event.target.matches('[data-select-page]')) {
+                setChecks(function () { return event.target.checked; });
+            }
+            if (event.target.matches('[data-batch-item]')) {
+                lastBatchCheck = event.target;
+                refreshBatchSelection();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (event.target.matches('[data-batch-item]')) {
+                if (event.shiftKey && lastBatchCheck && lastBatchCheck !== event.target) {
+                    setRange(event.target, event.target.checked);
+                    refreshBatchSelection();
+                }
+                lastBatchCheck = event.target;
+                return;
+            }
+
+            var shortcut = event.target.closest('[data-select-visible],[data-select-direction],[data-clear-selection]');
+            if (shortcut) {
+                if (shortcut.matches('[data-select-visible]')) {
+                    setChecks(function () { return true; });
+                }
+                if (shortcut.matches('[data-select-direction]')) {
+                    var direction = shortcut.dataset.selectDirection;
+                    setChecks(function (check) { return check.dataset.direcao === direction; });
+                }
+                if (shortcut.matches('[data-clear-selection]')) {
+                    setChecks(function () { return false; });
+                }
+                return;
+            }
+
+            var row = event.target.closest('[data-select-row]');
+            if (!row || event.target.closest('a, button, input, select, textarea, label, form')) {
+                return;
+            }
+
+            var check = row.querySelector('[data-batch-item]');
+            if (check && !check.disabled) {
+                chooseCheck(check, !check.checked, event.shiftKey);
+            }
+        });
+
+        document.addEventListener('submit', function (event) {
+            if (event.target.id === 'form-classificar-lote' && selectedChecks().length === 0) {
+                event.preventDefault();
+                document.getElementById('revisao-erro').innerHTML =
+                    '<div class="alert alert-danger" role="alert">Selecione ao menos uma transação.</div>';
+            }
+        });
+
+        document.body.addEventListener('htmx:afterSwap', refreshBatchSelection);
+        document.addEventListener('DOMContentLoaded', refreshBatchSelection);
+    })();
+
     document.body.addEventListener('htmx:responseError', function (event) {
         document.getElementById('revisao-erro').innerHTML = event.detail.xhr.responseText;
     });

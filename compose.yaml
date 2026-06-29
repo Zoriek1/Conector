@@ -25,11 +25,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Segredos (CRIPTO_KEY, Pluggy/Bling) vêm do .env.dev — ignorado pelo git.
+    env_file:
+      - .env.dev
     environment:
+      # Dentro da rede do compose o host do banco é "db", não localhost;
+      # sobrescreve o DATABASE_URL do .env.dev (que aponta para localhost).
       DATABASE_URL: jdbc:postgresql://db:5432/conciliador
       DATABASE_USER: ${DATABASE_USER:-conciliador}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-conciliador}
-      # Segredos reais (Bling, CRIPTO_KEY) vêm do ambiente / .env — nunca versionados.
     ports:
       - "8080:8080"
     healthcheck:

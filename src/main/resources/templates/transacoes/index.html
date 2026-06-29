@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Transações')}"></head>
-<body class="bg-light">
+<body class="app-body">
 <nav th:replace="~{fragments/appnav :: navbar(${email})}"></nav>
 
-<main class="container">
-    <h1 class="h3 mb-4">Transações</h1>
+<main class="container app-main">
+    <header class="page-header">
+        <div>
+            <h1>Transações</h1>
+            <p>Todos os lançamentos ingeridos das suas integrações.</p>
+        </div>
+    </header>
 
-    <div th:if="${transacoes.empty}" class="alert alert-secondary">
+    <div th:if="${transacoes.empty}" class="empty-state">
         Nenhuma transação encontrada ainda. Conecte uma integração e sincronize para ver os lançamentos aqui.
     </div>
 
-    <div th:unless="${transacoes.empty}" class="table-responsive">
-        <table class="table table-sm table-striped align-middle">
+    <div th:unless="${transacoes.empty}" class="data-surface table-responsive">
+        <table class="table app-table align-middle mb-0" style="min-width: 0">
             <thead>
             <tr>
                 <th>Data</th>
@@ -30,11 +35,14 @@
                 <td th:text="${t.data}">2026-01-01</td>
                 <td th:text="${t.contaLocal}">conta</td>
                 <td th:text="${t.descricaoRaw}">descrição</td>
-                <td class="text-end" th:text="${t.valorLiquido}">0.00</td>
-                <td th:text="${t.direcao}">CREDITO</td>
-                <td th:text="${t.classe}">INDEFINIDO</td>
+                <td class="text-end money" th:text="${t.valorLiquido}">0.00</td>
+                <td>
+                    <span th:class="${t.direcao.name() == 'CREDITO'} ? 'direction-badge direction-in' : 'direction-badge direction-out'"
+                          th:text="${t.direcao.rotulo}">Entrada</span>
+                </td>
+                <td th:text="${t.classe != null ? t.classe.rotulo : '—'}">Indefinido</td>
                 <td class="text-end" th:text="${t.confianca}">0.000</td>
-                <td th:text="${t.estado}">INGERIDO</td>
+                <td th:text="${t.estado.rotulo}">Ingerido</td>
             </tr>
             </tbody>
         </table>

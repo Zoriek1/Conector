@@ -70,9 +70,9 @@
                     <td th:text="${lote.conta}">Conta</td>
                     <td th:text="${lote.inicio + ' a ' + lote.fim}">período</td>
                     <td>
-                        <span class="badge"
-                              th:classappend="${lote.status == 'UPLOAD_CONFIRMADO'} ? ' text-bg-success' : ' text-bg-primary'"
-                              th:text="${lote.status}">DISPONIVEL</span>
+                        <span class="status-pill"
+                              th:classappend="${lote.status == 'UPLOAD_CONFIRMADO'} ? ' status-ok' : ' status-neutral'"
+                              th:text="${lote.statusRotulo}">Disponível</span>
                     </td>
                     <td th:text="${lote.quantidadeItens}">0</td>
                     <td class="text-end" th:text="${lote.totalCreditos}">0.00</td>

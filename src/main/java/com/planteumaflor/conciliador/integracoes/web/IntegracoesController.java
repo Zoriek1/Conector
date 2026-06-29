@@ -5,6 +5,7 @@ import com.planteumaflor.conciliador.conta.domain.ContaBancaria;
 import com.planteumaflor.conciliador.conta.domain.TipoContaBancaria;
 import com.planteumaflor.conciliador.cora.persistence.IntegracaoCoraJpaRepository;
 import com.planteumaflor.conciliador.identidade.security.UsuarioPrincipal;
+import com.planteumaflor.conciliador.integracoes.RotulosIntegracao;
 import com.planteumaflor.conciliador.pluggy.persistence.IntegracaoPluggyJpaRepository;
 import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,18 +45,24 @@ class IntegracoesController {
                 .map(i -> new IntegracaoCardView(
                         "Cora",
                         i.getStatus().name(),
+                        RotulosIntegracao.status(i.getStatus().name()),
+                        true,
+                        i.getStatus().name().equals("ATIVA"),
                         i.getConectadoEm(),
                         i.getUltimaSincronizacao(),
-                        i.getUltimaFalhaTipo() == null ? null : i.getUltimaFalhaTipo().name(),
+                        RotulosIntegracao.falha(i.getUltimaFalhaTipo() == null ? null : i.getUltimaFalhaTipo().name()),
                         i.getFalhasConsecutivas()))
                 .orElse(IntegracaoCardView.pendente("Cora")));
         model.addAttribute("pluggy", pluggy.findByEmpresaId(empresaId)
                 .map(i -> new IntegracaoCardView(
                         "Pluggy",
                         i.getStatus().name(),
+                        RotulosIntegracao.status(i.getStatus().name()),
+                        i.getClientIdCifrado() != null,
+                        i.getPluggyItemId() != null && !i.getPluggyItemId().isBlank(),
                         i.getConectadoEm(),
                         i.getUltimaSincronizacao(),
-                        i.getUltimaFalhaTipo(),
+                        RotulosIntegracao.falha(i.getUltimaFalhaTipo()),
                         i.getFalhasConsecutivas()))
                 .orElse(IntegracaoCardView.pendente("Pluggy")));
         model.addAttribute("contas", contas.listar(empresaId).stream()
@@ -107,12 +114,16 @@ class IntegracoesController {
     record IntegracaoCardView(
             String nome,
             String status,
+            String statusRotulo,
+            boolean credenciaisSalvas,
+            boolean itemConectado,
             Instant conectadoEm,
             Instant ultimaSincronizacao,
             String ultimaFalha,
             int falhasConsecutivas) {
         static IntegracaoCardView pendente(String nome) {
-            return new IntegracaoCardView(nome, "NAO_CONECTADA", null, null, null, 0);
+            return new IntegracaoCardView(
+                    nome, "NAO_CONECTADA", "Não conectada", false, false, null, null, null, 0);
         }
     }
 
@@ -131,14 +142,14 @@ class IntegracoesController {
         static ContaView de(ContaBancaria conta) {
             return new ContaView(
                     conta.getId(),
-                    conta.getFonte().name(),
+                    conta.getFonte().getRotulo(),
                     conta.getIdContaExterna(),
                     conta.getNome(),
                     conta.getBancoCodigo(),
                     conta.getAgencia(),
                     conta.getNumero(),
                     conta.getDigito(),
-                    conta.getTipo().name(),
+                    conta.getTipo().getRotulo(),
                     conta.isAtiva(),
                     conta.getUltimaSincronizacao());
         }

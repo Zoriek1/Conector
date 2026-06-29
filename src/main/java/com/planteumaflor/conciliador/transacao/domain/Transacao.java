@@ -151,7 +151,7 @@ public class Transacao {
 
     public void classificar(ClasseTransacao classe, Confianca confianca, String justificativa) {
         exigirEstado(EstadoTransacao.INGERIDO);
-        this.classe = Objects.requireNonNull(classe, "classe é obrigatória");
+        this.classe = validarClasseCompativel(classe);
         this.confianca = Objects.requireNonNull(confianca, "confiança é obrigatória");
         this.justificativaClassificacao = exigirTexto(justificativa, "justificativa");
         this.motivoRevisao = null;
@@ -171,7 +171,7 @@ public class Transacao {
      */
     public void reclassificarManualmente(ClasseTransacao classe, String justificativa) {
         exigirEstado(EstadoTransacao.EM_REVISAO, EstadoTransacao.CLASSIFICADO);
-        this.classe = Objects.requireNonNull(classe, "classe é obrigatória");
+        this.classe = validarClasseCompativel(classe);
         this.confianca = Confianca.de(BigDecimal.ONE);
         this.justificativaClassificacao = exigirTexto(justificativa, "justificativa");
         this.motivoRevisao = null;
@@ -251,6 +251,15 @@ public class Transacao {
             throw new IllegalStateException(
                     "transição não permitida a partir de " + estado);
         }
+    }
+
+    private ClasseTransacao validarClasseCompativel(ClasseTransacao classe) {
+        ClasseTransacao validada = Objects.requireNonNull(classe, "classe é obrigatória");
+        if (!validada.aceita(direcao)) {
+            throw new IllegalArgumentException(
+                    "classe " + validada.name() + " não é compatível com " + direcao.name());
+        }
+        return validada;
     }
 
     private static BigDecimal normalizarDinheiroPositivo(BigDecimal valor, String campo) {

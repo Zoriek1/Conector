@@ -112,7 +112,7 @@ class TransacaoIntegrationTest {
                     Confianca.de(new BigDecimal("0.950")),
                     "primeira classificação");
             segundaCopia.classificar(
-                    ClasseTransacao.DEBITO_DESPESA,
+                    ClasseTransacao.RECEITA_FINANCEIRA,
                     Confianca.de(new BigDecimal("0.940")),
                     "segunda classificação");
 

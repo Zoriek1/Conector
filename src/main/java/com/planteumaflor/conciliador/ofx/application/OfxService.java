@@ -227,6 +227,7 @@ public class OfxService {
                 rs.getDate("data_inicio").toLocalDate(),
                 rs.getDate("data_fim").toLocalDate(),
                 rs.getString("status"),
+                statusLoteRotulo(rs.getString("status")),
                 rs.getString("nome_arquivo"),
                 rs.getInt("quantidade_itens"),
                 rs.getBigDecimal("total_creditos"),
@@ -250,11 +251,16 @@ public class OfxService {
             LocalDate inicio,
             LocalDate fim,
             String status,
+            String statusRotulo,
             String nomeArquivo,
             int quantidadeItens,
             BigDecimal totalCreditos,
             BigDecimal totalDebitos,
             java.time.Instant criadoEm) {}
+
+    private static String statusLoteRotulo(String codigo) {
+        return "UPLOAD_CONFIRMADO".equals(codigo) ? "Upload confirmado" : "Disponível";
+    }
 
     public record ArquivoOfx(String nomeArquivo, String mediaType, byte[] conteudo, String checksum) {}
 
