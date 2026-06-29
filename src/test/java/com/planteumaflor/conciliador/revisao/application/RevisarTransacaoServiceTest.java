@@ -42,10 +42,10 @@ class RevisarTransacaoServiceTest {
         Transacao item = emRevisao();
         repositorio.guardar(item);
 
-        servico.classificar(EMPRESA, item.getId(), item.getVersion(), ClasseTransacao.DEBITO_DESPESA);
+        servico.classificar(EMPRESA, item.getId(), item.getVersion(), ClasseTransacao.CREDITO_VENDA);
 
         assertThat(item.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
-        assertThat(item.getClasse()).isEqualTo(ClasseTransacao.DEBITO_DESPESA);
+        assertThat(item.getClasse()).isEqualTo(ClasseTransacao.CREDITO_VENDA);
     }
 
     @Test

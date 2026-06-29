@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Formulários de credenciais reutilizados pela tela de integrações. Ficam aqui
+  para poderem ser incluídos tanto no estado "ainda não conectado" quanto dentro
+  do <details> "Atualizar credenciais" sem renderizar duas vezes.
+-->
+<body>
+
+<form th:fragment="coraForm" th:action="@{/integracoes/cora/credenciais}" method="post" class="vstack gap-3">
+    <div>
+        <label for="clientId" class="form-label">Client ID</label>
+        <input type="text" id="clientId" name="clientId" class="form-control" autocomplete="off" required>
+    </div>
+    <div>
+        <label for="certificadoPem" class="form-label">Certificado PEM</label>
+        <textarea id="certificadoPem" name="certificadoPem" class="form-control" rows="5" required></textarea>
+    </div>
+    <div>
+        <label for="chavePrivadaPem" class="form-label">Chave privada PEM</label>
+        <textarea id="chavePrivadaPem" name="chavePrivadaPem" class="form-control" rows="5" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">Salvar Cora</button>
+</form>
+
+<form th:fragment="pluggyForm" th:action="@{/integracoes/pluggy/credenciais}" method="post" class="vstack gap-3">
+    <div>
+        <label for="pluggyClientId" class="form-label">Client ID</label>
+        <input type="text" id="pluggyClientId" name="clientId" class="form-control" autocomplete="off" required>
+    </div>
+    <div>
+        <label for="pluggyClientSecret" class="form-label">Client Secret</label>
+        <input type="password" id="pluggyClientSecret" name="clientSecret" class="form-control" autocomplete="off" required>
+    </div>
+    <button type="submit" class="btn btn-success">Salvar Pluggy</button>
+</form>
+
+</body>
+</html>

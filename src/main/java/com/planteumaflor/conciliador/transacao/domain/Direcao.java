@@ -1,7 +1,17 @@
 package com.planteumaflor.conciliador.transacao.domain;
 
-/** Sinal semântico do movimento; o valor monetário permanece sempre positivo. */
+/** Sinal semantico do movimento; o valor monetario permanece sempre positivo. */
 public enum Direcao {
-    CREDITO,
-    DEBITO
+    CREDITO("Entrada"),
+    DEBITO("Saida");
+
+    private final String rotulo;
+
+    Direcao(String rotulo) {
+        this.rotulo = rotulo;
+    }
+
+    public String getRotulo() {
+        return rotulo;
+    }
 }

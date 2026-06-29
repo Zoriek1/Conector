@@ -1,7 +1,9 @@
 package com.planteumaflor.conciliador.inicio.query;
 
 import com.planteumaflor.conciliador.cora.persistence.IntegracaoCoraJpaRepository;
+import com.planteumaflor.conciliador.integracoes.RotulosIntegracao;
 import com.planteumaflor.conciliador.pluggy.persistence.IntegracaoPluggyJpaRepository;
+import com.planteumaflor.conciliador.transacao.domain.EstadoTransacao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -66,20 +68,22 @@ class InicioQueryService implements ConsultarInicio {
                 .ifPresentOrElse(i -> itens.add(new InicioView.IntegracaoStatusView(
                                 "Cora",
                                 i.getStatus().name(),
+                                RotulosIntegracao.status(i.getStatus().name()),
                                 i.getUltimaSincronizacao(),
-                                i.getUltimaFalhaTipo() == null ? null : i.getUltimaFalhaTipo().name(),
+                                RotulosIntegracao.falha(i.getUltimaFalhaTipo() == null ? null : i.getUltimaFalhaTipo().name()),
                                 i.getFalhasConsecutivas())),
                         () -> itens.add(new InicioView.IntegracaoStatusView(
-                                "Cora", "NAO_CONECTADA", null, null, 0)));
+                                "Cora", "NAO_CONECTADA", RotulosIntegracao.status("NAO_CONECTADA"), null, null, 0)));
         pluggy.findByEmpresaId(empresaId)
                 .ifPresentOrElse(i -> itens.add(new InicioView.IntegracaoStatusView(
                                 "Pluggy",
                                 i.getStatus().name(),
+                                RotulosIntegracao.status(i.getStatus().name()),
                                 i.getUltimaSincronizacao(),
-                                i.getUltimaFalhaTipo(),
+                                RotulosIntegracao.falha(i.getUltimaFalhaTipo()),
                                 i.getFalhasConsecutivas())),
                         () -> itens.add(new InicioView.IntegracaoStatusView(
-                                "Pluggy", "NAO_CONECTADA", null, null, 0)));
+                                "Pluggy", "NAO_CONECTADA", RotulosIntegracao.status("NAO_CONECTADA"), null, null, 0)));
         return itens;
     }
 
@@ -100,6 +104,6 @@ class InicioQueryService implements ConsultarInicio {
                 rs.getString("descricao_raw"),
                 rs.getBigDecimal("valor_liquido"),
                 rs.getString("direcao"),
-                rs.getString("estado"));
+                EstadoTransacao.valueOf(rs.getString("estado")).getRotulo());
     }
 }

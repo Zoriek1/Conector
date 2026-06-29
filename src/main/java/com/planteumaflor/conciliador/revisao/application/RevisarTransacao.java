@@ -16,6 +16,8 @@ public interface RevisarTransacao {
 
     void classificar(UUID empresaId, UUID transacaoId, long versaoEsperada, ClasseTransacao classe);
 
+    void classificarLote(UUID empresaId, ClassificarLoteCommand comando);
+
     void selecionarMatch(
             UUID empresaId,
             UUID transacaoId,

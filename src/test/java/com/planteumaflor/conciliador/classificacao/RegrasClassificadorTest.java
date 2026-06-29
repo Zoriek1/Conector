@@ -31,13 +31,13 @@ class RegrasClassificadorTest {
     }
 
     @Test
-    void classificaDebitoComDescricaoDeTaxaComoDespesa() {
+    void classificaDebitoComDescricaoDeTarifaComoFinanceira() {
         Transacao transacao = transacao(Direcao.DEBITO, "Tarifa de manutenção de conta");
 
         classificador.classificar(transacao);
 
         assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
-        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.DEBITO_DESPESA);
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.TARIFAS_BANCARIAS);
     }
 
     @Test
@@ -73,8 +73,68 @@ class RegrasClassificadorTest {
 
         classificador.classificar(transacao);
 
-        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.DEBITO_DESPESA);
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.AGUA_ENERGIA_INTERNET_TELEFONE);
         assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
+    }
+
+    @Test
+    void classificaFornecedorComoCmv() {
+        Transacao transacao = transacao(Direcao.DEBITO, "Pagamento fornecedor de flores");
+
+        classificador.classificar(transacao);
+
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.FLORES_FOLHAGENS_PLANTAS);
+    }
+
+    @Test
+    void classificaImpostoMarketingFreteESistemas() {
+        Transacao imposto = transacao(Direcao.DEBITO, "DAS Simples Nacional");
+        Transacao marketing = transacao(Direcao.DEBITO, "Facebook Ads campanha");
+        Transacao frete = transacao(Direcao.DEBITO, "Correios frete pedido");
+        Transacao sistema = transacao(Direcao.DEBITO, "Assinatura Nuvemshop");
+
+        classificador.classificar(imposto);
+        classificador.classificar(marketing);
+        classificador.classificar(frete);
+        classificador.classificar(sistema);
+
+        assertThat(imposto.getClasse()).isEqualTo(ClasseTransacao.IMPOSTOS_TRIBUTOS);
+        assertThat(marketing.getClasse()).isEqualTo(ClasseTransacao.MARKETING_TRAFEGO);
+        assertThat(frete.getClasse()).isEqualTo(ClasseTransacao.FRETE_ENTREGAS);
+        assertThat(sistema.getClasse()).isEqualTo(ClasseTransacao.SISTEMAS_ASSINATURAS);
+    }
+
+    @Test
+    void classificaEstornoVendaAlimentacaoEVeiculo() {
+        Transacao estorno = transacao(Direcao.DEBITO, "Chargeback venda cancelada cliente");
+        Transacao alimentacao = transacao(Direcao.DEBITO, "Almoco equipe restaurante");
+        Transacao combustivel = transacao(Direcao.DEBITO, "Posto gasolina abastecimento");
+        Transacao manutencao = transacao(Direcao.DEBITO, "Oficina troca de oleo veiculo");
+        Transacao estacionamento = transacao(Direcao.DEBITO, "Estacionamento entrega cliente");
+
+        classificador.classificar(estorno);
+        classificador.classificar(alimentacao);
+        classificador.classificar(combustivel);
+        classificador.classificar(manutencao);
+        classificador.classificar(estacionamento);
+
+        assertThat(estorno.getClasse()).isEqualTo(ClasseTransacao.VENDA_CANCELADA_ESTORNO);
+        assertThat(alimentacao.getClasse()).isEqualTo(ClasseTransacao.ALIMENTACAO_EQUIPE);
+        assertThat(combustivel.getClasse()).isEqualTo(ClasseTransacao.COMBUSTIVEL_VEICULO);
+        assertThat(manutencao.getClasse()).isEqualTo(ClasseTransacao.MANUTENCAO_VEICULO);
+        assertThat(estacionamento.getClasse()).isEqualTo(ClasseTransacao.PEDAGIO_ESTACIONAMENTO);
+    }
+
+    @Test
+    void classificaCategoriasForaDoDre() {
+        Transacao aporte = transacao(Direcao.CREDITO, "Aporte de capital social");
+        Transacao retirada = transacao(Direcao.DEBITO, "Retirada socio");
+
+        classificador.classificar(aporte);
+        classificador.classificar(retirada);
+
+        assertThat(aporte.getClasse()).isEqualTo(ClasseTransacao.APORTE_SOCIO);
+        assertThat(retirada.getClasse()).isEqualTo(ClasseTransacao.RETIRADA_DISTRIBUICAO_SOCIOS);
     }
 
     @Test
