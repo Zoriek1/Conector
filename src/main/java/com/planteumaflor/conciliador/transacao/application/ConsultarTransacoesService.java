@@ -18,7 +18,9 @@ class ConsultarTransacoesService implements ConsultarTransacoes {
     }
 
     @Override
-    public Page<Transacao> listar(UUID empresaId, Pageable pageable) {
-        return transacoes.listarPorEmpresa(empresaId, pageable);
+    public Page<Transacao> listar(UUID empresaId, boolean incluirTransferencias, Pageable pageable) {
+        return incluirTransferencias
+                ? transacoes.listarPorEmpresa(empresaId, pageable)
+                : transacoes.listarNaoPareadas(empresaId, pageable);
     }
 }

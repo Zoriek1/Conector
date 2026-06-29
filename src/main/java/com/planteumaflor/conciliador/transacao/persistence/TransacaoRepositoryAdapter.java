@@ -1,5 +1,6 @@
 package com.planteumaflor.conciliador.transacao.persistence;
 
+import com.planteumaflor.conciliador.transacao.domain.ClasseTransacao;
 import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import com.planteumaflor.conciliador.transacao.domain.EstadoTransacao;
 import com.planteumaflor.conciliador.transacao.domain.Transacao;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -75,8 +77,21 @@ class TransacaoRepositoryAdapter implements TransacaoRepository {
     }
 
     @Override
+    public Page<Transacao> listarNaoPareadas(UUID empresaId, Pageable pageable) {
+        return springData.findByEmpresaIdAndTransferParIdIsNull(empresaId, pageable);
+    }
+
+    @Override
     public Page<Transacao> listarPorEstado(
             UUID empresaId, EstadoTransacao estado, Pageable pageable) {
         return springData.findByEmpresaIdAndEstado(empresaId, estado, pageable);
+    }
+
+    @Override
+    public List<Transacao> listarCandidatosTransferencia(UUID empresaId) {
+        return springData.findByEmpresaIdAndTransferParIdIsNullAndEstadoInAndClasseNot(
+                empresaId,
+                List.of(EstadoTransacao.CLASSIFICADO, EstadoTransacao.EM_REVISAO),
+                ClasseTransacao.TRANSFERENCIA_INTERNA);
     }
 }

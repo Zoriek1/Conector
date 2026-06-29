@@ -9,5 +9,9 @@ import java.util.UUID;
 /** Porta pública de leitura das transações da empresa autenticada. */
 public interface ConsultarTransacoes {
 
-    Page<Transacao> listar(UUID empresaId, Pageable pageable);
+    /**
+     * Lista as transações da empresa. Por padrão oculta as transferências internas
+     * já pareadas; passe {@code incluirTransferencias} como verdadeiro para exibi-las.
+     */
+    Page<Transacao> listar(UUID empresaId, boolean incluirTransferencias, Pageable pageable);
 }

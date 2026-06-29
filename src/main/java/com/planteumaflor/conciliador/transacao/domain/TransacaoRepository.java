@@ -3,6 +3,7 @@ package com.planteumaflor.conciliador.transacao.domain;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,6 +21,15 @@ public interface TransacaoRepository {
 
     Page<Transacao> listarPorEmpresa(UUID empresaId, Pageable pageable);
 
+    /** Lista apenas lançamentos que não fazem parte de um par de transferência interna. */
+    Page<Transacao> listarNaoPareadas(UUID empresaId, Pageable pageable);
+
     Page<Transacao> listarPorEstado(
             UUID empresaId, EstadoTransacao estado, Pageable pageable);
+
+    /**
+     * Candidatos à detecção automática de transferência interna: ainda não pareados,
+     * classificados ou em revisão, e que ainda não são transferência interna.
+     */
+    List<Transacao> listarCandidatosTransferencia(UUID empresaId);
 }

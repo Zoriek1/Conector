@@ -1,5 +1,6 @@
 package com.planteumaflor.conciliador.transacao.persistence;
 
+import com.planteumaflor.conciliador.transacao.domain.ClasseTransacao;
 import com.planteumaflor.conciliador.transacao.domain.FonteIntegracao;
 import com.planteumaflor.conciliador.transacao.domain.EstadoTransacao;
 import com.planteumaflor.conciliador.transacao.domain.Transacao;
@@ -7,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +24,11 @@ interface SpringDataTransacaoRepository extends Repository<Transacao, UUID> {
 
     Page<Transacao> findByEmpresaId(UUID empresaId, Pageable pageable);
 
+    Page<Transacao> findByEmpresaIdAndTransferParIdIsNull(UUID empresaId, Pageable pageable);
+
     Page<Transacao> findByEmpresaIdAndEstado(
             UUID empresaId, EstadoTransacao estado, Pageable pageable);
+
+    List<Transacao> findByEmpresaIdAndTransferParIdIsNullAndEstadoInAndClasseNot(
+            UUID empresaId, Collection<EstadoTransacao> estados, ClasseTransacao classe);
 }

@@ -110,6 +110,73 @@ class TransacaoTest {
     }
 
     @Test
+    void detectaTransferenciaInternaReclassificandoEParando() {
+        UUID par = UUID.randomUUID();
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("250.00")));
+        transacao.classificar(
+                ClasseTransacao.CREDITO_VENDA,
+                Confianca.de(new BigDecimal("0.950")),
+                "regra de recebimento");
+
+        transacao.detectarTransferenciaInterna(par);
+
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.TRANSFERENCIA_INTERNA);
+        assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
+        assertThat(transacao.getTransferParId()).isEqualTo(par);
+        assertThat(transacao.getTransferOrigem()).isEqualTo(OrigemTransferencia.AUTOMATICA);
+        assertThat(transacao.getTransferDetectadoEm()).isNotNull();
+        assertThat(transacao.getConfianca()).isEqualTo(Confianca.de(BigDecimal.ONE));
+    }
+
+    @Test
+    void detectaTransferenciaInternaAPartirDeRevisao() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("80.00")));
+        transacao.enviarParaRevisao("nenhuma regra correspondeu");
+
+        transacao.detectarTransferenciaInterna(UUID.randomUUID());
+
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.TRANSFERENCIA_INTERNA);
+        assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
+        assertThat(transacao.getMotivoRevisao()).isNull();
+    }
+
+    @Test
+    void desfazerTransferenciaInternaVoltaParaRevisaoComoIndefinido() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("250.00")));
+        transacao.classificar(
+                ClasseTransacao.CREDITO_VENDA,
+                Confianca.de(new BigDecimal("0.950")),
+                "regra de recebimento");
+        transacao.detectarTransferenciaInterna(UUID.randomUUID());
+
+        transacao.desfazerTransferenciaInterna();
+
+        assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.EM_REVISAO);
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.INDEFINIDO);
+        assertThat(transacao.getTransferParId()).isNull();
+        assertThat(transacao.getTransferOrigem()).isNull();
+        assertThat(transacao.getTransferDetectadoEm()).isNull();
+        assertThat(transacao.getMotivoRevisao()).isNotBlank();
+    }
+
+    @Test
+    void naoDesfazTransferenciaQuandoNaoPareada() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("30.00")));
+        transacao.enviarParaRevisao("nenhuma regra correspondeu");
+
+        assertThatThrownBy(transacao::desfazerTransferenciaInterna)
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void naoDetectaTransferenciaAPartirDeIngerido() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("30.00")));
+
+        assertThatThrownBy(() -> transacao.detectarTransferenciaInterna(UUID.randomUUID()))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void impedeTransicoesInvalidas() {
         Transacao transacao = Transacao.ingerida(dados(new BigDecimal("20.00")));
 
