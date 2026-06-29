@@ -2,6 +2,7 @@ package com.planteumaflor.conciliador.revisao.query;
 
 import com.planteumaflor.conciliador.transacao.domain.ClasseTransacao;
 import com.planteumaflor.conciliador.transacao.domain.Direcao;
+import com.planteumaflor.conciliador.transacao.domain.EstadoTransacao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,5 +19,6 @@ public record FilaRevisaoItemView(
         BigDecimal valorLiquido,
         ClasseTransacao classeSugerida,
         BigDecimal confianca,
-        String motivo
+        String motivo,
+        EstadoTransacao estado
 ) {}

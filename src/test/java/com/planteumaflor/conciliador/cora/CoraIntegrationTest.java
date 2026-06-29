@@ -171,6 +171,7 @@ class CoraIntegrationTest {
 
     private void limparBanco() {
         jdbc.update("DELETE FROM transacao");
+        jdbc.update("DELETE FROM conta_bancaria");
         jdbc.update("DELETE FROM integracao_cora");
         jdbc.update("DELETE FROM integracao_pluggy");
         jdbc.update("DELETE FROM usuario");

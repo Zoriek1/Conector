@@ -164,6 +164,20 @@ public class Transacao {
         this.estado = EstadoTransacao.EM_REVISAO;
     }
 
+    /**
+     * Reclassificação humana de um item em revisão (ou já classificado). A
+     * decisão manual carrega confiança máxima e leva o item de volta a
+     * {@code CLASSIFICADO}, limpando o motivo da revisão.
+     */
+    public void reclassificarManualmente(ClasseTransacao classe, String justificativa) {
+        exigirEstado(EstadoTransacao.EM_REVISAO, EstadoTransacao.CLASSIFICADO);
+        this.classe = Objects.requireNonNull(classe, "classe é obrigatória");
+        this.confianca = Confianca.de(BigDecimal.ONE);
+        this.justificativaClassificacao = exigirTexto(justificativa, "justificativa");
+        this.motivoRevisao = null;
+        this.estado = EstadoTransacao.CLASSIFICADO;
+    }
+
     public void registrarMatch(String tipo, String idExterno, BigDecimal taxaDerivada) {
         exigirEstado(EstadoTransacao.CLASSIFICADO, EstadoTransacao.EM_REVISAO);
         String tipoNormalizado = exigirTexto(tipo, "tipo do match").toUpperCase(Locale.ROOT);

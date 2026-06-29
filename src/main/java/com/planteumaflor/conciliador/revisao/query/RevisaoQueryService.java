@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,9 +22,16 @@ class RevisaoQueryService implements ConsultarFilaRevisao {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FilaRevisaoItemView> consultar(UUID empresaId, Pageable pageable) {
-        return transacoes.listarPorEstado(empresaId, EstadoTransacao.EM_REVISAO, pageable)
+    public Page<FilaRevisaoItemView> consultar(
+            UUID empresaId, EstadoTransacao estado, Pageable pageable) {
+        return transacoes.listarPorEstado(empresaId, estado, pageable)
                 .map(this::paraView);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<FilaRevisaoItemView> consultarItem(UUID empresaId, UUID transacaoId) {
+        return transacoes.buscarPorId(empresaId, transacaoId).map(this::paraView);
     }
 
     private FilaRevisaoItemView paraView(Transacao transacao) {
@@ -37,6 +45,7 @@ class RevisaoQueryService implements ConsultarFilaRevisao {
                 transacao.getValorLiquido(),
                 transacao.getClasse(),
                 transacao.getConfianca().valor(),
-                transacao.getMotivoRevisao());
+                transacao.getMotivoRevisao(),
+                transacao.getEstado());
     }
 }

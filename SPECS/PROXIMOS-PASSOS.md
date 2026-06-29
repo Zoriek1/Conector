@@ -2,64 +2,59 @@
 
 ## Resumo
 
-A branch `dev` já contém identidade, onboarding inicial, domínio de transações,
-integração Cora direta, classificação básica e perfil. O roadmap antigo que
-apontava `Transacao` como próximo passo ficou obsoleto após os merges de
-2026-06-24.
+A branch `dev` já contém: identidade completa (login, cadastro, perfil, alterar
+senha), onboarding com Cora e Pluggy reais, credenciais por empresa cifradas
+(`CriptoService`), contas bancárias, ingestão e classificação de transações,
+fila de revisão, tela de Integrações, dashboard Início, lotes OFX e templates
+para todas as telas. Migrações V1–V10 aplicadas.
 
 ### Decisão de conectores
 
-- **Cora direto** é o primeiro conector bancário operacional e a prioridade
-  imediata de estabilização.
-- **Pluggy permanece no escopo** como agregador para outras contas. A fundação
-  atual é fake e será evoluída sem acoplar o domínio `Transacao` ao fornecedor.
+- **Cora direto** é o primeiro conector bancário operacional.
+- **Pluggy** tem adapter real (`PluggyGatewayAdapter`); credenciais por empresa
+  criptografadas no banco (V9).
 - Toda transação mantém `fonte` e unicidade por
   `(empresa_id, fonte, id_transacao_externa)`.
 
-## Ordem recomendada
+## O que ainda falta
 
 1. **Restabelecer a validação do build**
    - Garantir Java 21, Docker disponível para Testcontainers e executar
-     `./mvnw test` (`mvnw.cmd test` no Windows).
-   - Em 2026-06-24, a compilação estática de fontes e testes passou e os 22
-     testes unitários executáveis sem infraestrutura ficaram verdes. Os 47
-     métodos de integração ainda dependem do Docker/Testcontainers.
+     `mvnw.cmd test` no Windows.
+   - Testes unitários passam sem infraestrutura; testes de integração dependem
+     do Docker/Testcontainers.
 
-2. **Consolidar ingestão Cora — concluído em 2026-06-24**
-   - Agendar sincronização por cron e executar retry limitado com backoff.
-   - Persistir saúde e falhas consecutivas sem armazenar payload ou segredo.
-   - Tornar o insert idempotente atômico com `ON CONFLICT DO NOTHING`, evitando
-     a corrida de `exists` seguido de `insert`.
-   - Manter sincronização manual autenticada e isolamento por tenant.
+2. **Implementar o núcleo Bling**
+   - OAuth/refresh por empresa → `BlingToken` persistido → `BlingClient` →
+     leitura de contas a receber/pagar → estratégias de match →
+     outbox e escrita idempotente.
+   - Ver [Backend §16](./Backend.md) passos 7–9.
 
-3. **Fechar classificação e fila básica — concluído em 2026-06-24**
-   - Normalizar descrições, ampliar regras determinísticas e enviar qualquer
-     caso abaixo do limiar para `EM_REVISAO`.
-   - Expor uma fila autenticada, paginada e exclusivamente escopada pela empresa.
-   - Evoluir depois para os comandos, detalhes e fragments HTMX da Tela 05.
+3. **Completar revisão HTMX e OFX**
+   - Comandos de revisão (`aprovar`, `classificar`, `match`, `ofx`, `retry`)
+     com fragmentos HTMX e proteção de versão (409).
+   - Confirmação humana de upload OFX → estado `CONCILIADO`.
 
-4. **Entregar a Tela 04 — Início**
-   - Criar contagens por estado no banco, saúde das integrações, última
-     sincronização, atividade recente e ação `Sincronizar agora`.
-   - Remover o placeholder atual.
+4. **Finalizar onboarding**
+   - Ampliar `EtapaOnboarding` para as 7 etapas do spec.
+   - Fluxo OAuth Bling (`/integracoes/bling/conectar` + retorno).
+   - Polling HTMX de primeira sincronização.
+   - Testes: callback state inválido, idempotência, isolamento.
 
-5. **Implementar o núcleo Bling**
-   - Leitura e estratégias de match → OAuth/refresh por empresa → outbox e
-     escrita idempotente.
+5. **Métricas, auditoria e CI**
+   - Tabela ou eventos de auditoria de classificação/match.
+   - Métricas Actuator (fila por estado, outbox, latência por integração).
+   - Build image Docker e pipeline CI.
 
-6. **Completar os fluxos do v1**
-   - Revisão HTMX completa → lotes OFX → Pluggy real → métricas/auditoria →
-     build image e CI. Ordem de dependências: [Backend §16](./Backend.md).
-
-## Testes de aceite imediatos
+## Testes de aceite pendentes
 
 - Suíte completa verde com PostgreSQL/Testcontainers.
-- Sincronização repetida ou concorrente não duplica transações.
-- Falha do Cora atualiza a saúde sem expor credenciais; sucesso posterior
-  recupera a integração.
-- Transações e fila de revisão permanecem isoladas entre empresas.
-- Casos ambíguos entram em `EM_REVISAO`; regras seguras ficam `CLASSIFICADO`.
+- Sincronização repetida ou concorrente não duplica transações (Cora e Pluggy).
+- Falha de conector atualiza saúde sem expor credenciais.
+- Transações, fila e OFX permanecem isolados entre empresas.
 - Transições inválidas e alterações após `CONCILIADO` falham.
+- Revisão via HTMX preserva CSRF e trata conflito de versão (409).
+- OFX marcado `CONCILIADO` somente após confirmação humana.
 
 ## Premissas
 

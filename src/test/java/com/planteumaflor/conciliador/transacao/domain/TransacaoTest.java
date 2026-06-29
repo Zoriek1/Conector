@@ -78,6 +78,28 @@ class TransacaoTest {
     }
 
     @Test
+    void reclassificaItemEmRevisaoComConfiancaMaxima() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("30.00")));
+        transacao.enviarParaRevisao("nenhuma regra correspondeu");
+
+        transacao.reclassificarManualmente(ClasseTransacao.DEBITO_DESPESA, "ajuste manual");
+
+        assertThat(transacao.getEstado()).isEqualTo(EstadoTransacao.CLASSIFICADO);
+        assertThat(transacao.getClasse()).isEqualTo(ClasseTransacao.DEBITO_DESPESA);
+        assertThat(transacao.getConfianca()).isEqualTo(Confianca.de(BigDecimal.ONE));
+        assertThat(transacao.getMotivoRevisao()).isNull();
+    }
+
+    @Test
+    void naoReclassificaItemIngerido() {
+        Transacao transacao = Transacao.ingerida(dados(new BigDecimal("30.00")));
+
+        assertThatThrownBy(() ->
+                transacao.reclassificarManualmente(ClasseTransacao.DEBITO_DESPESA, "ajuste"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void impedeTransicoesInvalidas() {
         Transacao transacao = Transacao.ingerida(dados(new BigDecimal("20.00")));
 
