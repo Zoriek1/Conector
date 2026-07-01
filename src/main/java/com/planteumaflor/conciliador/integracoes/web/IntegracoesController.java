@@ -1,5 +1,6 @@
 package com.planteumaflor.conciliador.integracoes.web;
 
+import com.planteumaflor.conciliador.bling.persistence.BlingTokenJpaRepository;
 import com.planteumaflor.conciliador.conta.application.ContaBancariaService;
 import com.planteumaflor.conciliador.conta.domain.ContaBancaria;
 import com.planteumaflor.conciliador.conta.domain.TipoContaBancaria;
@@ -26,14 +27,17 @@ class IntegracoesController {
 
     private final IntegracaoCoraJpaRepository cora;
     private final IntegracaoPluggyJpaRepository pluggy;
+    private final BlingTokenJpaRepository bling;
     private final ContaBancariaService contas;
 
     IntegracoesController(
             IntegracaoCoraJpaRepository cora,
             IntegracaoPluggyJpaRepository pluggy,
+            BlingTokenJpaRepository bling,
             ContaBancariaService contas) {
         this.cora = cora;
         this.pluggy = pluggy;
+        this.bling = bling;
         this.contas = contas;
     }
 
@@ -65,6 +69,18 @@ class IntegracoesController {
                         RotulosIntegracao.falha(i.getUltimaFalhaTipo()),
                         i.getFalhasConsecutivas()))
                 .orElse(IntegracaoCardView.pendente("Pluggy")));
+        model.addAttribute("bling", bling.findByEmpresaId(empresaId)
+                .map(t -> new IntegracaoCardView(
+                        "Bling",
+                        t.getStatus().name(),
+                        RotulosIntegracao.status(t.getStatus().name()),
+                        true,
+                        t.getStatus().name().equals("ATIVA"),
+                        t.getConectadoEm(),
+                        t.getUltimaRenovacao(),
+                        RotulosIntegracao.falha(t.getUltimaFalhaTipo() == null ? null : t.getUltimaFalhaTipo().name()),
+                        t.getFalhasConsecutivas()))
+                .orElse(IntegracaoCardView.pendente("Bling")));
         model.addAttribute("contas", contas.listar(empresaId).stream()
                 .map(ContaView::de)
                 .toList());

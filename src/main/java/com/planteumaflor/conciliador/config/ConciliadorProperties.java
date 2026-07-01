@@ -49,6 +49,9 @@ public record ConciliadorProperties(
 
     public record Bling(
             String baseUrl,
+            String authorizeUrl,
+            String tokenUrl,
+            String redirectUri,
             String clientId,
             String clientSecret,
             Duration margemExpiracao

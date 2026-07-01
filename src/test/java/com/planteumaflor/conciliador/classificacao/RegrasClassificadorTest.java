@@ -167,7 +167,7 @@ class RegrasClassificadorTest {
                 new ConciliadorProperties.Ingest("0 0 4 * * *", 7, 3, Duration.ofSeconds(2)),
                 new ConciliadorProperties.Classificacao(
                         new BigDecimal("0.900"), new BigDecimal("0.100")),
-                new ConciliadorProperties.Bling(null, null, null, Duration.ofMinutes(2)),
+                new ConciliadorProperties.Bling(null, null, null, null, null, null, Duration.ofMinutes(2)),
                 new ConciliadorProperties.Pluggy(null),
                 new ConciliadorProperties.Cora(null, null, null, null, null),
                 new ConciliadorProperties.Cripto(null));

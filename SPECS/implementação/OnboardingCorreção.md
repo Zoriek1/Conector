@@ -30,10 +30,11 @@
 - [ ] `OnboardingView` rico (§4): etapa + `IntegracaoView` Pluggy/Bling +
   contas + sincronização + `podeConcluir`. Substituir retorno só-`EtapaOnboarding`.
 
-### ⬜ Bling OAuth
-- [ ] `BlingOAuthController` (`POST /integracoes/bling/conectar`,
-  `GET /integracoes/bling/retorno`), `state` assinado de uso único,
-  token por empresa (migration `bling_oauth_token`).
+### ✅ Bling OAuth
+- [x] `BlingOAuthController` (`POST /integracoes/bling/conectar`,
+  `GET /integracoes/bling/retorno`), `state` assinado de uso único (HMAC +
+  nonce na sessão), token por empresa cifrado (migration `V15__bling_oauth_token`).
+  Falta apenas inserir a etapa `BLING_PENDENTE` na derivação do onboarding (abaixo).
 
 ### ⬜ Primeira sincronização
 - [ ] `IniciarPrimeiraSincronizacao` + `GET /onboarding/status` com

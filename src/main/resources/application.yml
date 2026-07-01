@@ -46,6 +46,11 @@ conciliador:
   bling:
     # Credenciais do APP Bling (OAuth) são globais; default vazio no esqueleto.
     base-url: ${BLING_BASE_URL:https://api.bling.com.br/Api/v3}
+    authorize-url: ${BLING_AUTHORIZE_URL:https://www.bling.com.br/Api/v3/oauth/authorize}
+    token-url: ${BLING_TOKEN_URL:https://www.bling.com.br/Api/v3/oauth/token}
+    # Deve ser idêntica à URL de redirecionamento cadastrada no app Bling
+    # (inclui o context-path /page).
+    redirect-uri: ${BLING_REDIRECT_URI:http://localhost:8080/page/integracoes/bling/retorno}
     client-id: ${BLING_CLIENT_ID:}
     client-secret: ${BLING_CLIENT_SECRET:}
     margem-expiracao: ${BLING_TOKEN_SKEW:PT2M}

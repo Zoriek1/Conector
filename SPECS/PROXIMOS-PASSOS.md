@@ -25,9 +25,16 @@ para todas as telas. Migrações V1–V10 aplicadas.
      do Docker/Testcontainers.
 
 2. **Implementar o núcleo Bling**
-   - OAuth/refresh por empresa → `BlingToken` persistido → `BlingClient` →
-     leitura de contas a receber/pagar → estratégias de match →
-     outbox e escrita idempotente.
+   - [x] OAuth (authorization code) + refresh por empresa → `BlingToken`
+     persistido e cifrado (migration V15) → `BlingTokenService` com renovação
+     serializada (lock pessimista) e revogação como estado terminal →
+     `BlingOAuthController` (`POST /integracoes/bling/conectar`,
+     `GET /integracoes/bling/retorno`) com `state` assinado de uso único →
+     card na tela de Integrações → `BlingHealthIndicator` no Actuator.
+   - [ ] `BlingGateway`/`BlingClient`: leitura de contas a receber/pagar →
+     estratégias de match → outbox e escrita idempotente (borderô).
+     Depende de confirmar no sandbox o schema do POST de borderô e os filtros
+     de GET (ver [Bling-API-v3 §7](./Bling-API-v3.md)).
    - Ver [Backend §16](./Backend.md) passos 7–9.
 
 3. **Completar revisão HTMX e OFX**
