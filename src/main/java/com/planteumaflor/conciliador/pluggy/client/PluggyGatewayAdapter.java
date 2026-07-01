@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 class PluggyGatewayAdapter implements PluggyGateway {
@@ -122,6 +123,16 @@ class PluggyGatewayAdapter implements PluggyGateway {
             }
         }
         return transacoes;
+    }
+
+    @Override
+    public void registrarWebhook(String apiKey, String url, String evento, Map<String, String> headers) {
+        client.post()
+                .uri("/webhooks")
+                .header(API_KEY_HEADER, apiKey)
+                .body(new PluggyDto.WebhookRequest(url, evento, headers))
+                .retrieve()
+                .toBodilessEntity();
     }
 
     private String documentoContraparte(PluggyDto.PaymentData paymentData) {

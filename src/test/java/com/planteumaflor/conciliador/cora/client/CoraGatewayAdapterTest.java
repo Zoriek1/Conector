@@ -60,7 +60,7 @@ class CoraGatewayAdapterTest {
                 new ConciliadorProperties.Classificacao(
                         new java.math.BigDecimal("0.900"), new java.math.BigDecimal("0.100")),
                 new ConciliadorProperties.Bling(null, null, null, null, null, null, java.time.Duration.ofMinutes(2)),
-                new ConciliadorProperties.Pluggy(null),
+                new ConciliadorProperties.Pluggy(null, null, null),
                 new ConciliadorProperties.Cora(
                         "https://auth.example.invalid", "https://api.example.invalid", "/token", "/extrato", "/saldo"),
                 new ConciliadorProperties.Cripto(null));

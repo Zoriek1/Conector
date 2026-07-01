@@ -3,6 +3,7 @@ package com.planteumaflor.conciliador.pluggy.application;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface PluggyGateway {
 
@@ -13,6 +14,9 @@ public interface PluggyGateway {
     List<ContaPluggy> listarContas(String apiKey, String itemId);
 
     List<TransacaoPluggy> listarTransacoes(String apiKey, String accountId, LocalDate de, LocalDate ate);
+
+    /** Registra a URL de webhook na Pluggy para o evento informado (ex.: "all"). */
+    void registrarWebhook(String apiKey, String url, String evento, Map<String, String> headers);
 
     record CredenciaisPluggy(String clientId, String clientSecret) {}
 

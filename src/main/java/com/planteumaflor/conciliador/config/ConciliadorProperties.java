@@ -58,7 +58,9 @@ public record ConciliadorProperties(
     ) {}
 
     public record Pluggy(
-            String baseUrl
+            String baseUrl,
+            String webhookSecret,
+            String publicUrl
     ) {}
 
     /**

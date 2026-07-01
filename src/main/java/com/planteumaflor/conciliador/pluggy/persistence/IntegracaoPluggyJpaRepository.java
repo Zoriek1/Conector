@@ -23,6 +23,8 @@ public interface IntegracaoPluggyJpaRepository extends JpaRepository<IntegracaoP
 
     Optional<IntegracaoPluggy> findByEmpresaId(UUID empresaId);
 
+    Optional<IntegracaoPluggy> findByPluggyItemId(String pluggyItemId);
+
     boolean existsByEmpresaIdAndStatus(UUID empresaId, StatusIntegracao status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

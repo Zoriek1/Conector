@@ -2,6 +2,7 @@ package com.planteumaflor.conciliador.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,8 +44,13 @@ class SecurityConfig {
                         .requestMatchers("/entrar", "/cadastro").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // Webhook Pluggy: chamada servidor-a-servidor, sem sessão nem
+                        // CSRF — autenticidade vem do header X-Webhook-Secret (ver
+                        // PluggyWebhookAuthenticator), não de login.
+                        .requestMatchers(HttpMethod.POST, "/webhooks/pluggy").permitAll()
                         .anyRequest().authenticated()
                 )
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/webhooks/pluggy"))
                 // Registra as sessões (sem limite) para permitir encerrar as
                 // demais a partir do perfil (tela 09 §9).
                 .sessionManagement(session -> session

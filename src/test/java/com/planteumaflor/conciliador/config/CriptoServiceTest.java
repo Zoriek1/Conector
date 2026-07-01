@@ -53,7 +53,7 @@ class CriptoServiceTest {
                 new ConciliadorProperties.Classificacao(
                         new BigDecimal("0.900"), new BigDecimal("0.100")),
                 new ConciliadorProperties.Bling(null, null, null, null, null, null, Duration.ofMinutes(2)),
-                new ConciliadorProperties.Pluggy(null),
+                new ConciliadorProperties.Pluggy(null, null, null),
                 new ConciliadorProperties.Cora(null, null, null, null, null),
                 new ConciliadorProperties.Cripto(chave));
     }

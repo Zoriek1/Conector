@@ -57,6 +57,13 @@ conciliador:
   pluggy:
     # Sem api-key global: credenciais do Meu Pluggy são por empresa, no banco.
     base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
+    # Segredo enviado como header em todo webhook (a Pluggy não assina o corpo,
+    # apenas ecoa headers customizados definidos no registro do webhook).
+    webhook-secret: ${PLUGGY_WEBHOOK_SECRET:}
+    # URL pública do Conector (sem context-path duplicado), usada para montar
+    # a URL do webhook no registro automático. PRECISA ser não-localhost em
+    # produção — a Pluggy rejeita URLs localhost.
+    public-url: ${APP_PUBLIC_URL:http://localhost:8080/page}
   cora:
     # Integração direta (OAuth client-credentials + mTLS); credenciais são por
     # empresa, no banco.

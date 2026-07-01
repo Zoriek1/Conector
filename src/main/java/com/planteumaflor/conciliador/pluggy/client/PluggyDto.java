@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 
 final class PluggyDto {
 
@@ -84,4 +85,6 @@ final class PluggyDto {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record DocumentNumber(String value) {}
+
+    record WebhookRequest(String url, String event, Map<String, String> headers) {}
 }
